@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>REAVO Ecosystem - Master Portal</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;family=Material+Icons+Outlined&amp;display=swap"
+        rel="stylesheet" />
+
+    <!-- 1. Define Config -->
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#b78df7",
+                        "background-light": "#f7f6f8",
+                        "background-dark": "#171022",
+                        "lemon-green": "#b0f78d",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+                    boxShadow: {
+                        'neobrutal': '4px 4px 0px 0px rgba(0,0,0,1)',
+                        'neobrutal-lg': '8px 8px 0px 0px rgba(0,0,0,1)',
+                    }
+                },
+            },
+        }
+    </script>
+    <!-- 2. Load Library -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <style>
+        .card-hover:hover {
+            transform: translate(-4px, -4px);
+            box-shadow: 8px 8px 0px 0px rgba(0, 0, 0, 1);
+        }
+    </style>
+</head>
+
+<body class="bg-background-light text-slate-900 font-display min-h-screen flex flex-col relative overflow-hidden">
+
+    <!-- Background Elements -->
+    <div class="absolute inset-0 z-0 pointer-events-none opacity-40">
+        <div class="absolute top-[-10%] left-[-5%] w-[600px] h-[600px] bg-primary/20 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-[-10%] right-[-5%] w-[600px] h-[600px] bg-lemon-green/20 rounded-full blur-3xl">
+        </div>
+    </div>
+
+    <main class="relative z-10 flex-1 flex flex-col items-center justify-center p-8 max-w-7xl mx-auto w-full">
+
+        <!-- Header -->
+        <div class="text-center mb-16 space-y-4">
+            <div
+                class="w-16 h-16 bg-black text-white rounded-xl flex items-center justify-center font-bold text-3xl shadow-neobrutal mx-auto mb-6">
+                R</div>
+            <h1 class="text-5xl md:text-7xl font-black uppercase italic tracking-tighter loading-tight">
+                The REAVO <span class="text-primary underline decoration-black decoration-4">Ecosystem</span>
+            </h1>
+            <p class="text-xl text-slate-500 font-medium max-w-2xl mx-auto">
+                Unified payroll infrastructure for the modern African economy. Select a portal to begin.
+            </p>
+        </div>
+
+        <!-- Portal Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 w-full">
+
+            <!-- 1. SME Portal -->
+            <a href="sme/onboarding.html" class="block group">
+                <div
+                    class="bg-white border-2 border-black rounded-2xl p-8 h-full shadow-neobrutal card-hover transition-all duration-300 relative overflow-hidden">
+                    <div
+                        class="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity transform group-hover:scale-110 duration-500">
+                        <span class="material-icons-outlined text-9xl">business</span>
+                    </div>
+                    <div class="relative z-10 flex flex-col h-full justify-between">
+                        <div>
+                            <div
+                                class="w-12 h-12 bg-primary text-black border-2 border-black rounded-lg flex items-center justify-center mb-6">
+                                <span class="material-icons-outlined text-2xl">storefront</span>
+                            </div>
+                            <h2 class="text-2xl font-black uppercase italic mb-2 tracking-tight">SME Business</h2>
+                            <p class="text-sm text-slate-500 font-medium">For companies managing payroll, taxes, and
+                                compliance.</p>
+                        </div>
+                        <div
+                            class="mt-6 flex items-center gap-2 font-bold text-sm uppercase group-hover:gap-4 transition-all">
+                            Launch App <span class="material-icons-outlined text-sm">arrow_forward</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            <!-- 2. Developer / Lender Portal -->
+            <a href="developers/developers.html" class="block group">
+                <div
+                    class="bg-black text-white border-2 border-black rounded-2xl p-8 h-full shadow-neobrutal card-hover transition-all duration-300 relative overflow-hidden">
+                    <div
+                        class="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity transform group-hover:scale-110 duration-500">
+                        <span class="material-icons-outlined text-9xl">code</span>
+                    </div>
+                    <div class="relative z-10 flex flex-col h-full justify-between">
+                        <div>
+                            <div
+                                class="w-12 h-12 bg-white text-black border-2 border-white rounded-lg flex items-center justify-center mb-6">
+                                <span class="material-icons-outlined text-2xl">api</span>
+                            </div>
+                            <h2 class="text-2xl font-black uppercase italic mb-2 tracking-tight text-white">Developers
+                            </h2>
+                            <p class="text-sm text-slate-400 font-medium">API access for lenders to verify income &
+                                employment status.</p>
+                        </div>
+                        <div
+                            class="mt-6 flex items-center gap-2 font-bold text-sm uppercase text-primary group-hover:gap-4 transition-all">
+                            Access API <span class="material-icons-outlined text-sm">arrow_forward</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            <!-- 3. Employee Portal -->
+            <a href="employee/portal.html" class="block group">
+                <div
+                    class="bg-white border-2 border-black rounded-2xl p-8 h-full shadow-neobrutal card-hover transition-all duration-300 relative overflow-hidden">
+                    <div
+                        class="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity transform group-hover:scale-110 duration-500">
+                        <span class="material-icons-outlined text-9xl">badge</span>
+                    </div>
+                    <div class="relative z-10 flex flex-col h-full justify-between">
+                        <div>
+                            <div
+                                class="w-12 h-12 bg-lemon-green text-black border-2 border-black rounded-lg flex items-center justify-center mb-6">
+                                <span class="material-icons-outlined text-2xl">person</span>
+                            </div>
+                            <h2 class="text-2xl font-black uppercase italic mb-2 tracking-tight">Employees</h2>
+                            <p class="text-sm text-slate-500 font-medium">View payslips, tax history, and manage
+                                personal data.</p>
+                        </div>
+                        <div
+                            class="mt-6 flex items-center gap-2 font-bold text-sm uppercase group-hover:gap-4 transition-all">
+                            View Portal <span class="material-icons-outlined text-sm">arrow_forward</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            <!-- 4. Super Admin -->
+            <a href="superadmin/admin.html" class="block group">
+                <div
+                    class="bg-slate-100 border-2 border-black border-dashed rounded-2xl p-8 h-full hover:bg-white hover:border-solid hover:shadow-neobrutal card-hover transition-all duration-300 relative overflow-hidden">
+                    <div
+                        class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500">
+                        <span class="material-icons-outlined text-9xl">admin_panel_settings</span>
+                    </div>
+                    <div class="relative z-10 flex flex-col h-full justify-between">
+                        <div>
+                            <div
+                                class="w-12 h-12 bg-slate-200 text-slate-600 border-2 border-slate-400 group-hover:border-black group-hover:text-black rounded-lg flex items-center justify-center mb-6 transition-colors">
+                                <span class="material-icons-outlined text-2xl">security</span>
+                            </div>
+                            <h2
+                                class="text-2xl font-black uppercase italic mb-2 tracking-tight text-slate-400 group-hover:text-black transition-colors">
+                                Super Admin</h2>
+                            <p class="text-sm text-slate-400 group-hover:text-slate-500 font-medium transition-colors">
+                                System oversight, user management, and global logs.</p>
+                        </div>
+                        <div
+                            class="mt-6 flex items-center gap-2 font-bold text-sm uppercase text-slate-400 group-hover:text-black group-hover:gap-4 transition-all">
+                            Enter Dashboard <span class="material-icons-outlined text-sm">lock_open</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-24 text-center space-y-2">
+            <div
+                class="flex items-center justify-center gap-4 text-xs font-bold uppercase text-slate-400 tracking-widest">
+                <span>v2.0.1 Blueprint</span>
+                <span>•</span>
+                <span>System Status: <span class="text-green-500">Operational</span></span>
+            </div>
+            <p class="text-[10px] text-slate-300 font-mono">Build ID: 89f3a1 • © 2026 REAVO Inc.</p>
+        </footer>
+
+    </main>
+
+</body>
+
+</html>

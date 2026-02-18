@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>REAVO - The Registry</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;family=Material+Icons+Outlined&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#b78df7",
+                        "background-light": "#f7f6f8",
+                        "background-dark": "#171022",
+                        "lemon-green": "#b0f78d",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+                    boxShadow: {
+                        'neobrutal': '4px 4px 0px 0px rgba(0,0,0,1)',
+                        'neobrutal-sm': '2px 2px 0px 0px rgba(0,0,0,1)',
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Glassmorphism utility */
+        .glass-sidebar {
+            background: rgba(247, 246, 248, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .dark .glass-sidebar {
+            background: rgba(23, 16, 34, 0.65);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Neo-brutalist active state for buttons */
+        .btn-press:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 1);
+        }
+
+        .btn-press-primary:active {
+            transform: translate(4px, 4px);
+            box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 1);
+        }
+
+        [x-cloak] {
+            display: none !important;
+        }
+
+        @keyframes toast-in {
+            from {
+                transform: translateY(100%) scale(0.9);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .animate-toast {
+            animation: toast-in 0.3s ease-out forwards;
+        }
+    </style>
+</head>
+
+<body x-data="{ 
+        notifications: [],
+        showModal: null,
+        userDropdown: false,
+        
+        // Staff Data
+        staffList: [
+            { 
+                id: 1, 
+                name: 'Sarah Jenkins', 
+                email: 'sarah.j@company.com', 
+                role: 'Senior Developer', 
+                salary: '₦12,500,000/yr', 
+                upid: 'RV-2026-X99', 
+                status: 'Verified', 
+                avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026024d' 
+            },
+            { 
+                id: 2, 
+                name: 'Michael Okon', 
+                email: 'michael.o@company.com', 
+                role: 'Product Manager', 
+                salary: '₦15,200,000/yr', 
+                upid: 'RV-2026-X42', 
+                status: 'Verified', 
+                avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d' 
+            },
+            { 
+                id: 3, 
+                name: 'Anita Desai', 
+                email: 'anita.d@company.com', 
+                role: 'Pending Allocation', 
+                salary: '-', 
+                upid: 'Generating...', 
+                status: 'Pending', 
+                avatar: null 
+            }
+        ],
+
+        // New Staff Form Data
+        newStaff: {
+            firstName: '',
+            lastName: '',
+            email: '',
+            phone: '',
+            bankName: '',
+            accountNumber: '',
+            tin: '',
+            salary: 0,
+            rent: 0,
+            transport: 0,
+            consent: false
+        },
+
+        addNotification(msg, type = 'success') {
+            const id = Date.now();
+            this.notifications.push({ id, msg, type });
+            setTimeout(() => this.notifications = this.notifications.filter(n => n.id !== id), 3000);
+        },
+
+        computeAndOnboard() {
+            if (!this.newStaff.consent) {
+                this.addNotification('Consent is required to proceed.', 'error');
+                return;
+            }
+            
+            // Close modal
+            this.showModal = null;
+            
+            // 1. Trigger Notification: Auto-Compute
+            this.addNotification('Hitting NRS/Remita Engine for Tax Computation...');
+            
+            // 2. Simulate API Delay
+            setTimeout(() => {
+                // 3. Add to List with Verified Badge
+                this.staffList.unshift({
+                    id: Date.now(),
+                    name: this.newStaff.firstName + ' ' + this.newStaff.lastName,
+                    email: this.newStaff.email,
+                    role: 'New Hire',
+                    salary: '₦' + parseInt(this.newStaff.salary).toLocaleString() + '/yr',
+                    upid: 'RV-2026-' + Math.floor(Math.random() * 900 + 100), // Generate UPID
+                    status: 'Verified',
+                    avatar: null // Use placeholder
+                });
+                
+                this.addNotification('Staff Verified! UPID Generated & Payroll Computed.', 'success');
+                
+                // Reset Form
+                this.newStaff = { firstName: '', lastName: '', email: '', phone: '', bankName: '', accountNumber: '', tin: '', salary: 0, rent: 0, transport: 0, consent: false };
+                
+            }, 2000);
+        }
+    }"
+    class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white h-screen overflow-hidden flex selection:bg-primary selection:text-white">
+
+    <!-- Notification System -->
+    <div class="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] space-y-2 pointer-events-none">
+        <template x-for="n in notifications" :key="n.id">
+            <div class="animate-toast pointer-events-auto px-6 py-3 border border-black rounded-lg shadow-neobrutal flex items-center gap-3 min-w-[300px]"
+                :class="n.type === 'success' ? 'bg-lemon-green text-black' : (n.type === 'error' ? 'bg-red-500 text-white' : 'bg-primary text-black')">
+                <span class="material-icons-outlined" x-text="n.type === 'success' ? 'check_circle' : 'info'"></span>
+                <span class="font-bold text-sm tracking-tight" x-text="n.msg"></span>
+            </div>
+        </template>
+    </div>
+
+    <!-- Global Modal Overlay -->
+    <div x-show="showModal" x-cloak x-transition.opacity
+        class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+        <div x-show="showModal" x-transition.scale.origin.center @click.away="showModal = null"
+            class="bg-white dark:bg-slate-900 border-2 border-black rounded-2xl shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] max-w-lg w-full p-8 relative max-h-[90vh] overflow-y-auto">
+
+            <button @click="showModal = null" class="absolute top-4 right-4 hover:rotate-90 transition-transform">
+                <span class="material-icons-outlined font-bold">close</span>
+            </button>
+
+            <!-- Modal Content: Add Staff (Updated for Input Requirements) -->
+            <div x-show="showModal === 'add-staff'">
+                <h2 class="text-2xl font-black uppercase italic mb-1 tracking-tighter">Onboard Staff</h2>
+                <p class="text-xs text-slate-500 font-bold uppercase mb-6">Enter details for Auto-Computation</p>
+
+                <div class="space-y-4">
+                    <!-- Personal Info -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-slate-400">First Name</label>
+                            <input x-model="newStaff.firstName" type="text" placeholder="John"
+                                class="w-full border-black border-2 rounded-lg py-2 focus:ring-0">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-slate-400">Last Name</label>
+                            <input x-model="newStaff.lastName" type="text" placeholder="Doe"
+                                class="w-full border-black border-2 rounded-lg py-2 focus:ring-0">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-slate-400">Official Email</label>
+                            <input x-model="newStaff.email" type="email" placeholder="john.doe@company.com"
+                                class="w-full border-black border-2 rounded-lg py-2 focus:ring-0">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-slate-400">Phone Number</label>
+                            <input x-model="newStaff.phone" type="tel" placeholder="080 1234 5678"
+                                class="w-full border-black border-2 rounded-lg py-2 focus:ring-0">
+                        </div>
+                    </div>
+
+                    <!-- Bank & Tax -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-slate-400">Bank Name</label>
+                            <select x-model="newStaff.bankName"
+                                class="w-full border-black border-2 rounded-lg py-2 focus:ring-0">
+                                <option value="">Select Bank</option>
+                                <option>GTBank</option>
+                                <option>Zenith Bank</option>
+                                <option>Access Bank</option>
+                                <option>Kuda</option>
+                                <option>Maplerad Wallet</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-slate-400">Account Number</label>
+                            <input x-model="newStaff.accountNumber" type="text" placeholder="0123456789"
+                                class="w-full border-black border-2 rounded-lg py-2 focus:ring-0">
+                        </div>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black uppercase text-slate-400">Tax ID (TIN) (Optional)</label>
+                        <input x-model="newStaff.tin" type="text" placeholder="TIN-XXXX-XXXX"
+                            class="w-full border-black border-2 rounded-lg py-2 focus:ring-0">
+                    </div>
+
+                    <!-- Salary Breakdown -->
+                    <div class="p-3 bg-slate-50 border border-black rounded-lg space-y-3">
+                        <p class="text-[10px] font-black uppercase text-primary">Compensation Breakdown</p>
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-bold uppercase text-slate-400">Gross Annual</label>
+                                <input x-model="newStaff.salary" type="number" placeholder="0.00"
+                                    class="w-full border-black border rounded py-1 px-2 text-sm focus:ring-0">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-bold uppercase text-slate-400">Rent</label>
+                                <input x-model="newStaff.rent" type="number" placeholder="0.00"
+                                    class="w-full border-black border rounded py-1 px-2 text-sm focus:ring-0">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-bold uppercase text-slate-400">Transport</label>
+                                <input x-model="newStaff.transport" type="number" placeholder="0.00"
+                                    class="w-full border-black border rounded py-1 px-2 text-sm focus:ring-0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- The Consent Toggle -->
+                    <div
+                        class="flex items-start gap-3 p-3 bg-lemon-green/10 border-2 border-black border-dashed rounded-lg">
+                        <input x-model="newStaff.consent" type="checkbox"
+                            class="mt-1 rounded border-black text-primary focus:ring-0 w-5 h-5">
+                        <p class="text-[10px] font-bold leading-tight">
+                            I verify that this staff member has consented to the creation of a <span
+                                class="text-primary">UPID</span> and the processing of their employment data via the
+                            verified Remita/NRS compute engine.
+                        </p>
+                    </div>
+
+                    <button @click="computeAndOnboard()"
+                        class="w-full py-4 bg-primary border-2 border-black rounded-xl font-black uppercase shadow-neobrutal-sm hover:translate-x-[2px] hover:translate-y-[2px] avtive:shadow-none transition-all">
+                        Run Auto-Compute & Onboard
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal Content: Staff Profile -->
+            <div x-show="showModal === 'staff-profile'">
+                <div class="flex items-center gap-4 mb-6">
+                    <div
+                        class="w-16 h-16 rounded-full border-2 border-black bg-primary flex items-center justify-center text-2xl font-black">
+                        JS</div>
+                    <div>
+                        <h2 class="text-2xl font-black uppercase italic leading-none tracking-tighter">John Smith</h2>
+                        <p class="text-xs font-bold text-slate-500 uppercase">Product Design Lead</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="p-3 border border-black rounded-lg bg-slate-50">
+                        <p class="text-[8px] font-black text-slate-400 uppercase">UPID</p>
+                        <p class="text-xs font-mono font-bold">RE-902-124</p>
+                    </div>
+                    <div class="p-3 border border-black rounded-lg bg-slate-50">
+                        <p class="text-[8px] font-black text-slate-400 uppercase">Status</p>
+                        <p class="text-xs font-bold text-green-600 uppercase">Verified</p>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <button @click="addNotification('Generating individual tax certificate...')"
+                        class="w-full py-2 border border-black rounded font-bold text-sm flex items-center justify-center gap-2">
+                        <span class="material-icons-outlined text-sm">download</span> Tax Certificate
+                    </button>
+                    <button @click="addNotification('Opening payroll adjustment...')"
+                        class="w-full py-2 border border-black rounded font-bold text-sm bg-lemon-green flex items-center justify-center gap-2">
+                        <span class="material-icons-outlined text-sm">payments</span> Adjust Package
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Sidebar -->
+    <aside
+        class="w-20 lg:w-64 h-full glass-sidebar flex flex-col justify-between shrink-0 z-20 relative transition-all duration-300">
+        <div>
+            <!-- MacOS Window Controls simulation -->
+            <div class="h-14 flex items-center px-6 gap-2">
+                <div class="w-3 h-3 rounded-full bg-red-500 border border-red-600/20"></div>
+                <div class="w-3 h-3 rounded-full bg-yellow-500 border border-yellow-600/20"></div>
+                <div class="w-3 h-3 rounded-full bg-green-500 border border-green-600/20"></div>
+            </div>
+            <!-- Logo -->
+            <div class="px-6 py-4 flex items-center gap-3">
+                <div
+                    class="w-8 h-8 bg-black dark:bg-white rounded-lg flex items-center justify-center shadow-neobrutal-sm">
+                    <span class="text-white dark:text-black font-bold text-lg">R</span>
+                </div>
+                <span class="hidden lg:block font-bold text-xl tracking-tight">REAVO</span>
+            </div>
+            <!-- Navigation -->
+            <nav class="mt-8 px-4 space-y-2">
+                <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-black dark:text-slate-400 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors group"
+                    href="app.html">
+                    <span
+                        class="material-icons-outlined text-[20px] group-hover:scale-110 transition-transform">dashboard</span>
+                    <span class="hidden lg:block">Command Center</span>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 bg-primary border border-black shadow-neobrutal rounded-lg text-black font-medium transition-transform active:translate-y-0.5 active:translate-x-0.5 active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] group"
+                    href="#">
+                    <span class="material-icons-outlined text-[20px]">people_alt</span>
+                    <span class="hidden lg:block">The Registry</span>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-black dark:text-slate-400 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors group"
+                    href="vault.html">
+                    <span
+                        class="material-icons-outlined text-[20px] group-hover:scale-110 transition-transform">lock</span>
+                    <span class="hidden lg:block">The Vault</span>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-black dark:text-slate-400 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors group"
+                    href="wallet.html">
+                    <span
+                        class="material-icons-outlined text-[20px] group-hover:scale-110 transition-transform">account_balance_wallet</span>
+                    <span class="hidden lg:block">Wallet</span>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-black dark:text-slate-400 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors group"
+                    href="reports.html">
+                    <span
+                        class="material-icons-outlined text-[20px] group-hover:scale-110 transition-transform">analytics</span>
+                    <span class="hidden lg:block">Reports</span>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-black dark:text-slate-400 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors group"
+                    href="settings.html">
+                    <span
+                        class="material-icons-outlined text-[20px] group-hover:scale-110 transition-transform">settings</span>
+                    <span class="hidden lg:block">Settings</span>
+                </a>
+            </nav>
+        </div>
+        <!-- User Profile -->
+        <div class="p-4 mb-2 relative">
+            <div @click="userDropdown = !userDropdown"
+                class="flex items-center gap-3 p-3 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-black dark:hover:border-white transition-colors cursor-pointer bg-white/50 dark:bg-black/20">
+                <img alt="User avatar" class="w-9 h-9 rounded-full border border-black object-cover"
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnlB5GipKRT69flPM9JEdpznVNZ3IN75njNjaR23bz1VKUTup1iDeZdCx77Z0f2urlnDDYzK_zV4eDbl0oDu1DV0rHiVazDAhc6SRTpnMJd5H3yFnR5qFpyCk4fFxArr4rIRcT25fVQSA5V-3r1OGC7RZ2TmDe3qGVtrAdzks4EPeJCjdhq68ek0bMXkQhhBJEjnvQ_O9FQmW1DD5fzrZ4UNFgD5-J3ph6T0MDJEfLkgfy8vdi796neNFMLPsfvruE8dPbzd8RIdI" />
+                <div class="hidden lg:block overflow-hidden">
+                    <p class="text-sm font-semibold truncate">Alex Chen</p>
+                    <p class="text-xs text-slate-500 truncate">Controller</p>
+                </div>
+            </div>
+
+            <!-- User Dropdown Menu -->
+            <div x-show="userDropdown" x-cloak @click.away="userDropdown = false"
+                class="absolute bottom-full left-4 mb-2 w-56 bg-white dark:bg-slate-900 border-2 border-black rounded-xl shadow-neobrutal p-2 z-50">
+                <a href="settings.html"
+                    class="flex items-center gap-3 px-3 py-2 hover:bg-primary rounded-lg transition-colors font-bold text-sm">
+                    <span class="material-icons-outlined text-sm">person</span> Profile
+                </a>
+                <button @click="addNotification('Security log exported'); userDropdown = false"
+                    class="w-full flex items-center gap-3 px-3 py-2 hover:bg-primary rounded-lg transition-colors font-bold text-sm">
+                    <span class="material-icons-outlined text-sm">history</span> Security Log
+                </button>
+                <div class="h-px bg-black my-1"></div>
+                <button @click="addNotification('Signing out...'); setTimeout(() => location.reload(), 1000)"
+                    class="w-full flex items-center gap-3 px-3 py-2 hover:bg-red-500 hover:text-white rounded-lg transition-colors font-bold text-sm">
+                    <span class="material-icons-outlined text-sm">logout</span> Logout
+                </button>
+            </div>
+        </div>
+    </aside>
+    <!-- Main Content -->
+    <main class="flex-1 h-full overflow-y-auto relative">
+        <div class="p-8 max-w-[1600px] mx-auto pb-32">
+            <!-- Header -->
+            <header class="flex justify-between items-end mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold mb-1">The Registry</h1>
+                    <p class="text-slate-500 dark:text-slate-400 text-sm">Manage staff on-boarding, verification, and
+                        tax compliance.</p>
+                </div>
+                <div class="hidden md:flex gap-3">
+                    <button @click="addNotification('Preparing export payload...')"
+                        class="px-4 py-2 border border-black bg-white dark:bg-slate-800 rounded-lg shadow-neobrutal-sm hover:shadow-neobrutal transition-all active:shadow-none active:translate-x-[2px] active:translate-y-[2px] flex items-center gap-2 text-sm font-medium">
+                        <span class="material-icons-outlined text-sm">download</span>
+                        Export CSV
+                    </button>
+                    <button @click="showModal = 'add-staff'"
+                        class="px-4 py-2 border border-black bg-black text-white dark:bg-white dark:text-black rounded-lg shadow-neobrutal-sm hover:shadow-neobrutal transition-all active:shadow-none active:translate-x-[2px] active:translate-y-[2px] flex items-center gap-2 text-sm font-medium hover:text-primary">
+                        <span class="material-icons-outlined text-sm">person_add</span>
+                        Add Staff
+                    </button>
+                </div>
+            </header>
+
+            <!-- Stats Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white dark:bg-slate-900 border border-black rounded-xl shadow-neobrutal p-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <p class="text-xs font-bold uppercase text-slate-500 tracking-wider">Total Headcount</p>
+                        <span class="material-icons-outlined text-slate-400">groups</span>
+                    </div>
+                    <h3 class="text-4xl font-bold" x-text="staffList.length + 57">60</h3>
+                    <p class="text-xs text-green-600 font-bold mt-2 flex items-center hover:underline cursor-pointer">
+                        <span class="material-icons-outlined text-sm mr-1">trending_up</span> +<span
+                            x-text="staffList.filter(s => s.status === 'Verified').length"></span> new verified
+                    </p>
+                </div>
+
+                <div class="bg-white dark:bg-slate-900 border border-black rounded-xl shadow-neobrutal p-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <p class="text-xs font-bold uppercase text-slate-500 tracking-wider">Verified Staff</p>
+                        <span class="material-icons-outlined text-slate-400">verified</span>
+                    </div>
+                    <h3 class="text-4xl font-bold" x-text="staffList.filter(s => s.status === 'Verified').length + 55">
+                        58</h3>
+                    <div
+                        class="mt-2 inline-flex items-center px-2 py-0.5 rounded border border-black bg-lemon-green shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                        <span class="text-xs font-bold uppercase">96% Compliant</span>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-slate-900 border border-black rounded-xl shadow-neobrutal p-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <p class="text-xs font-bold uppercase text-slate-500 tracking-wider">Pending KYB</p>
+                        <span class="material-icons-outlined text-slate-400">pending_actions</span>
+                    </div>
+                    <h3 class="text-4xl font-bold">2</h3>
+                    <p class="text-xs text-orange-500 font-bold mt-2">Action Required</p>
+                </div>
+            </div>
+
+            <!-- Registry Table -->
+            <div
+                class="bg-white dark:bg-slate-900 border border-black rounded-xl shadow-neobrutal overflow-hidden flex flex-col">
+                <div
+                    class="p-4 border-b border-black bg-background-light dark:bg-slate-800 flex justify-between items-center">
+                    <div class="flex items-center gap-4">
+                        <h2 class="text-lg font-bold uppercase tracking-wider">Staff Directory</h2>
+                        <div class="relative">
+                            <span
+                                class="material-icons-outlined absolute left-2 top-1.5 text-slate-400 text-sm">search</span>
+                            <input @keyup.enter="addNotification('Searching registry...')" type="text"
+                                placeholder="Search by name, UPID..."
+                                class="pl-8 pr-4 py-1 text-sm border border-slate-300 rounded focus:border-black focus:ring-0 bg-white dark:bg-black/20 w-64" />
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="p-2 hover:bg-black/5 rounded transition-colors"><span
+                                class="material-icons-outlined text-slate-500">filter_list</span></button>
+                        <button class="p-2 hover:bg-black/5 rounded transition-colors"><span
+                                class="material-icons-outlined text-slate-500">more_horiz</span></button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-slate-50 dark:bg-slate-800/50">
+                            <tr class="text-xs text-slate-500 uppercase border-b border-black">
+                                <th
+                                    class="p-4 font-bold border-r border-slate-200 dark:border-slate-700 w-12 text-center">
+                                    <input type="checkbox" class="rounded border-black text-primary focus:ring-0" />
+                                </th>
+                                <th class="p-4 font-bold border-r border-slate-200 dark:border-slate-700">Employee
+                                    Details</th>
+                                <th class="p-4 font-bold border-r border-slate-200 dark:border-slate-700">UPID</th>
+                                <th class="p-4 font-bold border-r border-slate-200 dark:border-slate-700">Role & Salary
+                                </th>
+                                <th class="p-4 font-bold border-r border-slate-200 dark:border-slate-700">Compliance
+                                </th>
+                                <th class="p-4 font-bold text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm divide-y divide-slate-100 dark:divide-slate-800">
+
+                            <!-- Dynamic Rows -->
+                            <template x-for="staff in staffList" :key="staff.id">
+                                <tr class="hover:bg-purple-50/50 dark:hover:bg-purple-900/10 transition-colors group">
+                                    <td class="p-4 text-center border-r border-slate-100 dark:border-slate-800">
+                                        <input type="checkbox"
+                                            class="rounded border-slate-300 text-primary focus:ring-0 group-hover:border-black" />
+                                    </td>
+                                    <td class="p-4 border-r border-slate-100 dark:border-slate-800">
+                                        <div class="flex items-center gap-3">
+                                            <!-- Avatar Switcher -->
+                                            <div
+                                                class="w-10 h-10 rounded-full bg-slate-200 border border-black overflow-hidden flex items-center justify-center">
+                                                <template x-if="staff.avatar">
+                                                    <img :src="staff.avatar" alt="Avatar"
+                                                        class="w-full h-full object-cover" />
+                                                </template>
+                                                <template x-if="!staff.avatar">
+                                                    <span class="font-black text-xs text-slate-500"
+                                                        x-text="staff.name.charAt(0)"></span>
+                                                </template>
+                                            </div>
+                                            <div>
+                                                <div class="font-bold text-slate-900 dark:text-white"
+                                                    x-text="staff.name"></div>
+                                                <div class="text-xs text-slate-500" x-text="staff.email"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="p-4 border-r border-slate-100 dark:border-slate-800 font-mono text-xs font-bold"
+                                        :class="staff.status === 'Verified' ? 'text-slate-600 dark:text-slate-400' : 'text-slate-400'"
+                                        x-text="staff.upid">
+                                    </td>
+                                    <td class="p-4 border-r border-slate-100 dark:border-slate-800">
+                                        <div class="font-medium" x-text="staff.role"></div>
+                                        <div class="text-xs text-slate-500" x-text="staff.salary"></div>
+                                    </td>
+                                    <td class="p-4 border-r border-slate-100 dark:border-slate-800">
+                                        <!-- Verified Badge -->
+                                        <div x-show="staff.status === 'Verified'"
+                                            class="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-lemon-green/20 border border-lemon-green text-green-800 dark:text-green-300">
+                                            <span class="material-icons-outlined text-[14px]">check_circle</span>
+                                            <span class="text-[10px] font-bold uppercase">Verified</span>
+                                        </div>
+                                        <!-- Pending Badge -->
+                                        <div x-show="staff.status === 'Pending'"
+                                            class="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-orange-100 border border-orange-200 text-orange-800 dark:bg-orange-900/20 dark:text-orange-300 dark:border-orange-800">
+                                            <span class="material-icons-outlined text-[14px]">hourglass_empty</span>
+                                            <span class="text-[10px] font-bold uppercase">Pending Consent</span>
+                                        </div>
+                                    </td>
+                                    <td class="p-4 text-center">
+                                        <button x-show="staff.status === 'Verified'"
+                                            class="w-8 h-8 rounded hover:bg-black hover:text-white transition-colors flex items-center justify-center mx-auto text-slate-400">
+                                            <span class="material-icons-outlined text-lg">edit_note</span>
+                                        </button>
+                                        <button x-show="staff.status === 'Pending'" @click="showModal = 'staff-profile'"
+                                            class="text-primary hover:underline font-bold text-xs uppercase">View
+                                        </button>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Pagination -->
+                <div class="p-4 border-t border-black bg-white dark:bg-slate-900 flex justify-between items-center">
+                    <span class="text-xs text-slate-500">Showing 1-3 of 60 staff members</span>
+                    <div class="flex gap-2">
+                        <button
+                            class="px-3 py-1 border border-slate-300 rounded text-xs font-bold hover:border-black disabled:opacity-50"
+                            disabled>PREV</button>
+                        <button
+                            class="px-3 py-1 border border-black bg-background-light rounded text-xs font-bold hover:bg-primary hover:text-white transition-colors">NEXT</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- The AURACLE (AI Assistant) -->
+        <div class="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-none">
+            <!-- Chat bubble -->
+            <div
+                class="mb-4 bg-white dark:bg-slate-900 border border-black rounded-xl rounded-tr-sm shadow-[8px_8px_0px_0px_rgba(183,141,247,1)] p-4 max-w-sm pointer-events-auto transform transition-all hover:scale-105 origin-bottom-right">
+                <div class="flex items-start gap-3">
+                    <div
+                        class="w-8 h-8 rounded bg-black text-primary flex items-center justify-center font-bold text-xs shrink-0">
+                        AI
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium leading-snug">Can I help you verify the new staff details for
+                            Anita Desai?</p>
+                        <div class="mt-2 flex gap-2">
+                            <button
+                                class="text-xs font-bold border border-black px-2 py-1 rounded hover:bg-primary hover:text-white transition-colors">Start
+                                Check</button>
+                            <button
+                                class="text-xs text-slate-500 hover:text-black transition-colors px-1 py-1">Dismiss</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Input Bar -->
+            <div
+                class="w-96 bg-white/90 backdrop-blur-md dark:bg-slate-900/90 border border-black rounded-full shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center p-1 pl-4 gap-2 pointer-events-auto">
+                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <input @keyup.enter="addNotification('The AURACLE is thinking...')"
+                    class="bg-transparent border-none focus:ring-0 text-sm w-full font-medium placeholder:text-slate-400"
+                    placeholder="Ask The AURACLE..." type="text" />
+                <button @click="addNotification('The AURACLE is thinking...')"
+                    class="w-8 h-8 bg-black rounded-full flex items-center justify-center text-primary hover:text-white transition-colors">
+                    <span class="material-icons-outlined text-[18px]">arrow_upward</span>
+                </button>
+            </div>
+            <div class="mt-1 mr-4 text-[10px] font-bold tracking-widest text-slate-400 uppercase">The AURACLE v2.0</div>
+        </div>
+    </main>
+</body>
+
+</html>

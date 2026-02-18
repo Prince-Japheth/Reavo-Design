@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>REAVO - Employee Portal</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;family=Material+Icons+Outlined&amp;display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#b78df7",
+                        "background-light": "#f7f6f8",
+                        "background-dark": "#171022",
+                        "lemon-green": "#b0f78d",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+                    boxShadow: {
+                        'neobrutal': '4px 4px 0px 0px rgba(0,0,0,1)',
+                        'neobrutal-sm': '2px 2px 0px 0px rgba(0,0,0,1)',
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        [x-cloak] {
+            display: none !important;
+        }
+
+        @keyframes toast-in {
+            from {
+                transform: translateY(100%) scale(0.9);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .animate-toast {
+            animation: toast-in 0.3s ease-out forwards;
+        }
+    </style>
+</head>
+
+<body x-data="{ 
+        step: 'login', // login, otp, dashboard
+        upid: '',
+        email: '',
+        otp: '',
+        notifications: [],
+        showQR: null, // For modal
+        
+        payslips: [
+            { id: 1, month: 'October 2023', netPay: '₦845,000.00', date: 'Oct 25, 2023', status: 'Paid' },
+            { id: 2, month: 'September 2023', netPay: '₦845,000.00', date: 'Sept 25, 2023', status: 'Paid' },
+            { id: 3, month: 'August 2023', netPay: '₦845,000.00', date: 'Aug 25, 2023', status: 'Paid' }
+        ],
+
+        addNotification(msg, type = 'success') {
+            const id = Date.now();
+            this.notifications.push({ id, msg, type });
+            setTimeout(() => this.notifications = this.notifications.filter(n => n.id !== id), 3000);
+        },
+
+        requestOTP() {
+            if (!this.upid || !this.email) {
+                this.addNotification('Please enter your UPID and Email.', 'error');
+                return;
+            }
+            this.addNotification('Sending OTP via Resend...');
+            setTimeout(() => {
+                this.step = 'otp';
+                this.addNotification('OTP sent to ' + this.email, 'success');
+            }, 1500);
+        },
+
+        verifyOTP() {
+            if (this.otp.length !== 6) {
+                this.addNotification('Invalid OTP', 'error');
+                return;
+            }
+            this.addNotification('Verifying identity...');
+            setTimeout(() => {
+                this.step = 'dashboard';
+                this.addNotification('Welcome back, Sarah!', 'success');
+            }, 1500);
+        },
+        
+        downloadPayslip(month) {
+            this.addNotification(`Downloading payslip for ${month}...`);
+        }
+    }"
+    class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white min-h-screen flex flex-col relative overflow-hidden selection:bg-primary selection:text-white">
+
+    <!-- Notification System -->
+    <div class="fixed top-6 left-1/2 -translate-x-1/2 z-[100] space-y-2 pointer-events-none">
+        <template x-for="n in notifications" :key="n.id">
+            <div class="animate-toast pointer-events-auto px-6 py-3 border border-black rounded-lg shadow-neobrutal flex items-center gap-3 min-w-[300px]"
+                :class="n.type === 'success' ? 'bg-lemon-green text-black' : (n.type === 'error' ? 'bg-red-500 text-white' : 'bg-primary text-black')">
+                <span class="material-icons-outlined" x-text="n.type === 'success' ? 'check_circle' : 'info'"></span>
+                <span class="font-bold text-sm tracking-tight" x-text="n.msg"></span>
+            </div>
+        </template>
+    </div>
+
+    <!-- QR Proof Modal -->
+    <div x-show="showQR" x-cloak x-transition.opacity
+        class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+        <div @click.away="showQR = null"
+            class="bg-white dark:bg-slate-900 border-2 border-black rounded-2xl shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] max-w-sm w-full p-8 relative flex flex-col items-center text-center">
+
+            <button @click="showQR = null" class="absolute top-4 right-4 hover:rotate-90 transition-transform">
+                <span class="material-icons-outlined font-bold">close</span>
+            </button>
+
+            <h3 class="text-xl font-black uppercase italic mb-1">Employment Proof</h3>
+            <p class="text-xs text-slate-500 font-bold uppercase mb-6" x-text="showQR"></p>
+
+            <div class="bg-white p-2 border-2 border-black rounded-xl mb-4">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://reavo.co/verify/RV-2026-X99"
+                    class="w-40 h-40 mix-blend-multiply" alt="Verification QR">
+            </div>
+
+            <div class="w-full bg-lemon-green/20 border border-lemon-green rounded-lg p-3 mb-4">
+                <div class="flex items-center justify-center gap-2 text-green-800 font-bold uppercase text-xs">
+                    <span class="material-icons-outlined text-sm">verified</span>
+                    Status: Active
+                </div>
+            </div>
+
+            <p class="text-[10px] text-slate-400">Scan to verify income source via REAVO Validator.</p>
+        </div>
+    </div>
+
+    <!-- Login / OTP View -->
+    <div x-show="step !== 'dashboard'" class="flex-1 flex flex-col items-center justify-center p-6 relative z-10">
+        <div class="mb-8 text-center">
+            <div
+                class="w-12 h-12 bg-black text-white rounded-lg flex items-center justify-center font-bold shadow-neobrutal-sm mx-auto mb-4">
+                R</div>
+            <h1 class="text-3xl font-black uppercase italic tracking-tighter">Employee Portal</h1>
+            <p class="text-slate-500 font-medium text-sm">Access your verified payroll history.</p>
+        </div>
+
+        <div class="bg-white dark:bg-slate-900 border-2 border-black rounded-2xl shadow-neobrutal w-full max-w-md p-8">
+            <!-- Login Form -->
+            <div x-show="step === 'login'" class="space-y-4">
+                <div class="space-y-1">
+                    <label class="text-[10px] font-black uppercase text-slate-400">Your UPID</label>
+                    <input x-model="upid" type="text" placeholder="RV-2026-XXXX"
+                        class="w-full border-2 border-black rounded-xl py-3 px-4 font-mono font-bold focus:ring-0 focus:border-primary">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] font-black uppercase text-slate-400">Official Email</label>
+                    <input x-model="email" type="email" placeholder="you@company.com"
+                        class="w-full border-2 border-black rounded-xl py-3 px-4 font-bold focus:ring-0 focus:border-primary">
+                </div>
+                <button @click="requestOTP()"
+                    class="w-full py-4 bg-primary border-2 border-black rounded-xl font-black uppercase shadow-neobrutal hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 transition-all">
+                    Send Login Code
+                </button>
+            </div>
+
+            <!-- OTP Form -->
+            <div x-show="step === 'otp'" class="space-y-4" x-cloak>
+                <div class="p-3 bg-lemon-green/10 border border-black rounded-lg mb-4">
+                    <p class="text-xs font-bold text-center">Code sent to <span x-text="email"></span></p>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] font-black uppercase text-slate-400">Enter OTP</label>
+                    <input x-model="otp" type="text" placeholder="000000" maxlength="6"
+                        class="w-full border-2 border-black rounded-xl py-3 px-4 text-center text-2xl font-black tracking-widest focus:ring-0 focus:border-primary">
+                </div>
+                <button @click="verifyOTP()"
+                    class="w-full py-4 bg-black text-white border-2 border-black rounded-xl font-black uppercase shadow-neobrutal hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 transition-all">
+                    Access Portal
+                </button>
+                <button @click="step = 'login'"
+                    class="w-full text-center text-xs font-bold text-slate-400 hover:text-black uppercase">Start
+                    Over</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard View -->
+    <div x-show="step === 'dashboard'" class="flex-1 flex flex-col h-screen" x-cloak>
+        <!-- Navbar -->
+        <header class="bg-white dark:bg-slate-900 border-b border-black p-4 flex justify-between items-center z-20">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-8 h-8 bg-primary text-black rounded-lg flex items-center justify-center font-bold border border-black shadow-neobrutal-sm">
+                    R</div>
+                <div>
+                    <h1 class="font-black text-lg uppercase italic tracking-tighter leading-none">My Payslips</h1>
+                    <p class="text-[10px] text-slate-500 font-bold uppercase" x-text="upid"></p>
+                </div>
+            </div>
+            <button @click="window.location.reload()"
+                class="p-2 hover:bg-slate-100 rounded-lg border border-transparent hover:border-black transition-all">
+                <span class="material-icons-outlined text-slate-500">logout</span>
+            </button>
+        </header>
+
+        <main class="flex-1 overflow-y-auto p-4 md:p-8 max-w-4xl mx-auto w-full">
+
+            <!-- Employee Card -->
+            <div
+                class="bg-white dark:bg-slate-900 border border-black rounded-xl shadow-neobrutal p-6 mb-8 flex flex-col md:flex-row items-center gap-6">
+                <div class="w-20 h-20 rounded-full bg-slate-200 border-2 border-black overflow-hidden">
+                    <img src="https://i.pravatar.cc/150?u=a042581f4e29026024d" alt="Profile"
+                        class="w-full h-full object-cover">
+                </div>
+                <div class="text-center md:text-left flex-1">
+                    <h2 class="text-2xl font-black uppercase">Sarah Jenkins</h2>
+                    <p class="text-sm font-bold text-slate-500">Senior Developer at Glo Limited</p>
+                    <div class="flex flex-wrap gap-2 justify-center md:justify-start mt-3">
+                        <span
+                            class="px-2 py-1 bg-lemon-green border border-black rounded text-[10px] font-bold uppercase">Active
+                            Employee</span>
+                        <span
+                            class="px-2 py-1 bg-slate-100 border border-black rounded text-[10px] font-bold uppercase">Tax
+                            Compliant</span>
+                    </div>
+                </div>
+                <div class="text-center md:text-right">
+                    <p class="text-[10px] font-black uppercase text-slate-400">Net Monthly Pay</p>
+                    <p class="text-3xl font-black tracking-tight">₦845,000</p>
+                </div>
+            </div>
+
+            <!-- Payslip List -->
+            <h3 class="text-lg font-black uppercase italic tracking-wider mb-4 border-b border-black pb-2">Payment
+                History</h3>
+
+            <div class="space-y-4">
+                <template x-for="slip in payslips" :key="slip.id">
+                    <div
+                        class="bg-white dark:bg-slate-900 border border-black rounded-xl p-4 shadow-neobrutal-sm hover:shadow-neobrutal hover:translate-x-[2px] hover:translate-y-[2px] transition-all flex items-center justify-between group cursor-pointer">
+                        <div class="flex items-center gap-4">
+                            <div @click="downloadPayslip(slip.month)"
+                                class="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center border border-black group-hover:bg-primary transition-colors">
+                                <span class="material-icons-outlined">receipt</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-sm" x-text="slip.month"></h4>
+                                <p class="text-xs text-slate-500" x-text="slip.date"></p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="font-mono font-bold text-sm hidden md:block" x-text="slip.netPay"></span>
+
+                            <button @click="showQR = slip.month"
+                                class="w-8 h-8 rounded-full border border-black/10 hover:border-black hover:bg-white transition-all flex items-center justify-center mr-1"
+                                title="View Verification QR">
+                                <span class="material-icons-outlined text-sm">qr_code</span>
+                            </button>
+
+                            <button @click="downloadPayslip(slip.month)"
+                                class="w-8 h-8 rounded-full border border-black flex items-center justify-center hover:bg-black hover:text-white transition-all">
+                                <span class="material-icons-outlined text-sm">download</span>
+                            </button>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+        </main>
+    </div>
+
+</body>
+
+</html>

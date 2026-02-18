@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>REAVO - Developers & Lenders</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;family=Material+Icons+Outlined&amp;display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#b78df7",
+                        "background-light": "#f7f6f8",
+                        "background-dark": "#171022",
+                        "lemon-green": "#b0f78d",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+                    boxShadow: {
+                        'neobrutal': '4px 4px 0px 0px rgba(0,0,0,1)',
+                        'neobrutal-sm': '2px 2px 0px 0px rgba(0,0,0,1)',
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        [x-cloak] {
+            display: none !important;
+        }
+
+        /* Terminal styling */
+        .terminal-box {
+            background-color: #1a1b1e;
+            color: #a9b7c6;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .terminal-cursor::after {
+            content: '_';
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body x-data="{ 
+        step: 1, // 1: Landing, 2: KYB, 3: Dashboard
+        appName: '',
+        apiKey: '',
+        searchUpid: '',
+        verificationResult: null,
+        loadingVerify: false,
+        walletBalance: 25000,
+        
+        notifications: [],
+        addNotification(msg, type = 'success') {
+            const id = Date.now();
+            this.notifications.push({ id, msg, type });
+            setTimeout(() => this.notifications = this.notifications.filter(n => n.id !== id), 3000);
+        },
+
+        registerApp() {
+            if (!this.appName) return;
+            this.addNotification('Registering Application...');
+            setTimeout(() => {
+                this.apiKey = 'rv_live_' + Math.random().toString(36).substring(2, 15);
+                this.step = 2; // Move to KYB / Funding
+            }, 1000);
+        },
+
+        fundWallet() {
+            this.addNotification('Funding verification wallet...');
+            setTimeout(() => {
+                this.step = 3; // Move to Dashboard
+                this.addNotification('Wallet Funded! Ready to query API.', 'success');
+            }, 1500);
+        },
+
+        verifyEmployee() {
+            if (!this.searchUpid) return;
+            this.loadingVerify = true;
+            this.verificationResult = null;
+            
+            // Simulate API Call
+            setTimeout(() => {
+                this.loadingVerify = false;
+                this.walletBalance -= 50; // Cost per call
+                
+                // Mock Response (Blueprint Aligned)
+                this.verificationResult = {
+                    status: 'ACTIVE',
+                    employer: 'Glo Limited',
+                    verified_monthly_net: 845000.00,
+                    three_month_avg: 840000.00,
+                    last_remittance: '2026-02-10',
+                    tax_compliant: true
+                };
+            }, 1200);
+        }
+    }"
+    class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white min-h-screen flex flex-col selection:bg-primary selection:text-white">
+
+    <!-- Notification System -->
+    <div class="fixed top-6 left-1/2 -translate-x-1/2 z-[100] space-y-2 pointer-events-none">
+        <template x-for="n in notifications" :key="n.id">
+            <div class="animate-toast pointer-events-auto px-6 py-3 border border-black rounded-lg shadow-neobrutal flex items-center gap-3 min-w-[300px]"
+                :class="n.type === 'success' ? 'bg-lemon-green text-black' : 'bg-primary text-black'">
+                <span class="material-icons-outlined" x-text="n.type === 'success' ? 'check_circle' : 'info'"></span>
+                <span class="font-bold text-sm tracking-tight" x-text="n.msg"></span>
+            </div>
+        </template>
+    </div>
+
+    <!-- Header -->
+    <header class="border-b border-black bg-white dark:bg-slate-900 px-8 py-4 flex justify-between items-center z-20">
+        <div class="flex items-center gap-3">
+            <div
+                class="bg-black text-white px-3 py-1 font-mono font-bold text-sm rounded border border-black shadow-neobrutal-sm">
+                API</div>
+            <span class="font-black text-lg tracking-tight">REAVO <span
+                    class="text-slate-400 font-normal">Developers</span></span>
+        </div>
+        <div x-show="step === 3" class="flex items-center gap-4">
+            <div
+                class="px-3 py-1 bg-lemon-green/20 border border-lemon-green rounded-full text-xs font-bold text-green-800 uppercase flex items-center gap-2">
+                <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Live Environment
+            </div>
+            <div class="bg-slate-100 px-3 py-1 rounded border border-black font-mono text-xs font-bold">
+                credits: <span x-text="'₦' + walletBalance"></span>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 flex flex-col items-center justify-center p-6 relative">
+
+        <!-- Step 1: Landing / Sign Up -->
+        <div x-show="step === 1" class="max-w-xl w-full text-center space-y-8">
+            <h1 class="text-4xl md:text-6xl font-black uppercase italic tracking-tighter leading-none">
+                Credit Infrastructure <br> for the <span
+                    class="text-primary underline decoration-black decoration-4">Modern Workforce</span>
+            </h1>
+            <p class="text-lg text-slate-500 font-medium">Instant income verification and employment data access for
+                lenders. Powered by the REAVO Universal Payroll ID (UPID).</p>
+
+            <div class="bg-white border-2 border-black rounded-xl p-2 shadow-neobrutal flex gap-2">
+                <input x-model="appName" type="text" placeholder="Enter your App Name"
+                    class="flex-1 border-none focus:ring-0 text-lg font-bold placeholder:text-slate-300">
+                <button @click="registerApp()"
+                    class="bg-black text-white px-6 py-3 rounded-lg font-bold uppercase hover:bg-slate-800 transition-colors">
+                    Get API Keys
+                </button>
+            </div>
+
+            <div class="grid grid-cols-3 gap-4 text-left">
+                <div class="p-4 border border-black rounded bg-white">
+                    <span class="material-icons-outlined text-primary mb-2">speed</span>
+                    <h3 class="font-bold text-sm">Real-time</h3>
+                    <p class="text-[10px] text-slate-500">Sub-second latency on all verification calls.</p>
+                </div>
+                <div class="p-4 border border-black rounded bg-white">
+                    <span class="material-icons-outlined text-lemon-green mb-2">verified_user</span>
+                    <h3 class="font-bold text-sm">Consent-First</h3>
+                    <p class="text-[10px] text-slate-500">Only access data authorized by employees.</p>
+                </div>
+                <div class="p-4 border border-black rounded bg-white">
+                    <span class="material-icons-outlined text-slate-400 mb-2">history</span>
+                    <h3 class="font-bold text-sm">Historical</h3>
+                    <p class="text-[10px] text-slate-500">Access up to 24 months of verified income history.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: KYB / Funding -->
+        <div x-show="step === 2"
+            class="max-w-lg w-full bg-white dark:bg-slate-900 border-2 border-black rounded-xl p-8 shadow-neobrutal"
+            x-cloak>
+            <h2 class="text-2xl font-black uppercase mb-6">Verify your Business</h2>
+
+            <div class="space-y-6">
+                <!-- API Key Display -->
+                <div class="space-y-1">
+                    <label class="text-[10px] font-black uppercase text-slate-400">Your Public Key</label>
+                    <div
+                        class="bg-slate-100 border border-black rounded p-3 font-mono text-sm font-bold flex justify-between items-center">
+                        <span x-text="apiKey"></span>
+                        <span
+                            class="material-icons-outlined text-xs cursor-pointer hover:text-primary">content_copy</span>
+                    </div>
+                </div>
+
+                <!-- Funding -->
+                <div class="p-4 border border-black border-dashed rounded-xl bg-lemon-green/10">
+                    <h3 class="font-bold text-sm uppercase mb-2">Fund Verification Wallet</h3>
+                    <p class="text-xs text-slate-500 mb-4">You need a minimum balance of ₦5,000 to start making API
+                        calls.</p>
+                    <button @click="fundWallet()"
+                        class="w-full py-3 bg-black text-white rounded font-bold uppercase hover:shadow-lg transition-all">
+                        Load ₦25,000 Test Credit
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Developer Dashboard -->
+        <div x-show="step === 3" class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 h-full" x-cloak>
+
+            <!-- Left: Query Builder -->
+            <div class="bg-white dark:bg-slate-900 border-2 border-black rounded-xl p-8 shadow-neobrutal flex flex-col">
+                <h2 class="text-2xl font-black uppercase italic mb-6">Endpoint Explorer</h2>
+
+                <div class="space-y-4 flex-1">
+                    <div class="flex items-center gap-2 mb-4">
+                        <span
+                            class="px-2 py-1 bg-blue-100 text-blue-700 font-mono font-bold text-xs rounded border border-blue-200">GET</span>
+                        <span class="font-mono text-sm text-slate-600">/v1/verify-employee/{upid}</span>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold uppercase">Target UPID</label>
+                        <input x-model="searchUpid" type="text" placeholder="RV-2026-X99"
+                            class="w-full border-2 border-black rounded-lg py-2 px-3 font-mono font-bold focus:ring-0 focus:border-primary">
+                        <p class="text-[10px] text-slate-400">Enter a valid UPID provided by a loan applicant.</p>
+                    </div>
+
+                    <div class="p-4 bg-slate-50 rounded border border-black/10">
+                        <h4 class="font-bold text-xs uppercase mb-2 text-slate-500">Required Headers</h4>
+                        <div class="font-mono text-xs space-y-1">
+                            <p><span class="text-purple-600">Authorization:</span> Bearer <span x-text="apiKey"
+                                    class="opacity-50"></span></p>
+                            <p><span class="text-purple-600">Content-Type:</span> application/json</p>
+                        </div>
+                    </div>
+
+                    <button @click="verifyEmployee()" :disabled="loadingVerify || !searchUpid"
+                        class="w-full py-4 mt-auto bg-primary border-2 border-black rounded-lg font-black uppercase shadow-neobrutal-sm hover:translate-y-0.5 hover:shadow-none transition-all flex items-center justify-center gap-2">
+                        <span x-show="!loadingVerify">Send Request</span>
+                        <span x-show="loadingVerify" class="flex items-center gap-2">
+                            Querying... <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                    stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                </path>
+                            </svg>
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right: Response Terminal -->
+            <div class="bg-black border-2 border-black rounded-xl p-0 shadow-neobrutal overflow-hidden flex flex-col">
+                <div class="bg-slate-800 px-4 py-2 flex items-center justify-between border-b border-slate-700">
+                    <span class="text-xs font-mono font-bold text-slate-400">RESPONSE PAYLOAD</span>
+                    <div class="flex gap-1.5">
+                        <div class="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+                        <div class="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
+                        <div class="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+                    </div>
+                </div>
+                <div class="p-6 terminal-box flex-1 min-h-[400px] overflow-auto">
+                    <!-- Default State -->
+                    <div x-show="!verificationResult && !loadingVerify"
+                        class="flex h-full items-center justify-center text-slate-600">
+                        <p class="font-mono text-sm">// Waiting for request...</p>
+                    </div>
+
+                    <!-- Loading State -->
+                    <div x-show="loadingVerify" class="space-y-1 font-mono text-sm">
+                        <p class="text-blue-400">> Connecting to REAVO Secure Gateway...</p>
+                        <p class="text-blue-400">> Verifying Consent Token...</p>
+                        <p class="text-blue-400 terminal-cursor">> Fetching Employment Data...</p>
+                    </div>
+
+                    <!-- Result State -->
+                    <div x-show="verificationResult" class="font-mono text-sm space-y-1">
+                        <p class="text-green-500">> HTTP 200 OK</p>
+                        <p class="text-slate-500 mb-4">> Date: <span x-text="new Date().toUTCString()"></span></p>
+                        <pre class="text-purple-300 overflow-x-auto whitespace-pre-wrap"
+                            x-text="JSON.stringify(verificationResult, null, 2)"></pre>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+</body>
+
+</html>

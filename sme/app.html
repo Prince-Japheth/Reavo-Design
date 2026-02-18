@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>REAVO Command Center Dashboard</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;family=Material+Icons+Outlined&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#b78df7",
+                        "background-light": "#f7f6f8",
+                        "background-dark": "#171022",
+                        "lemon-green": "#b0f78d",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+                    boxShadow: {
+                        'neobrutal': '4px 4px 0px 0px rgba(0,0,0,1)',
+                        'neobrutal-sm': '2px 2px 0px 0px rgba(0,0,0,1)',
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Glassmorphism utility */
+        .glass-sidebar {
+            background: rgba(247, 246, 248, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .dark .glass-sidebar {
+            background: rgba(23, 16, 34, 0.65);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Neo-brutalist active state for buttons */
+        .btn-press:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 1);
+        }
+
+        .btn-press-primary:active {
+            transform: translate(4px, 4px);
+            box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 1);
+        }
+
+        [x-cloak] {
+            display: none !important;
+        }
+
+        @keyframes toast-in {
+            from {
+                transform: translateY(100%) scale(0.9);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .animate-toast {
+            animation: toast-in 0.3s ease-out forwards;
+        }
+    </style>
+</head>
+
+<body x-data="{ 
+        notifications: [],
+        showModal: null,
+        userDropdown: false,
+        addNotification(msg, type = 'success') {
+            const id = Date.now();
+            this.notifications.push({ id, msg, type });
+            setTimeout(() => this.notifications = this.notifications.filter(n => n.id !== id), 3000);
+        }
+    }"
+    class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white h-screen overflow-hidden flex selection:bg-primary selection:text-white">
+
+    <!-- Notification System -->
+    <div class="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] space-y-2 pointer-events-none">
+        <template x-for="n in notifications" :key="n.id">
+            <div class="animate-toast pointer-events-auto px-6 py-3 border border-black rounded-lg shadow-neobrutal flex items-center gap-3 min-w-[300px]"
+                :class="n.type === 'success' ? 'bg-lemon-green text-black' : 'bg-primary text-black'">
+                <span class="material-icons-outlined" x-text="n.type === 'success' ? 'check_circle' : 'info'"></span>
+                <span class="font-bold text-sm tracking-tight" x-text="n.msg"></span>
+            </div>
+        </template>
+    </div>
+
+    <!-- Global Modal Overlay -->
+    <div x-show="showModal" x-cloak x-transition.opacity
+        class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+        <div x-show="showModal" x-transition.scale.origin.center @click.away="showModal = null"
+            class="bg-white dark:bg-slate-900 border-2 border-black rounded-2xl shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] max-w-lg w-full p-8 relative">
+
+            <button @click="showModal = null" class="absolute top-4 right-4 hover:rotate-90 transition-transform">
+                <span class="material-icons-outlined font-bold">close</span>
+            </button>
+
+            <!-- Modal Content: New Entry -->
+            <div x-show="showModal === 'new-entry'">
+                <h2 class="text-2xl font-black uppercase italic mb-2 tracking-tighter">Create New Entry</h2>
+                <p class="text-slate-500 text-sm mb-6 font-medium">Record a new manual transaction or ledger adjustment.
+                </p>
+                <!-- Small Utility Cards -->
+                <div class="grid grid-cols-2 lg:grid-cols-2 gap-4">
+                    <div @click="showModal = 'tax-breakdown'"
+                        class="bg-white dark:bg-slate-900 border border-black rounded-xl p-4 shadow-neobrutal hover:shadow-neobrutal-sm hover:translate-x-[2px] hover:translate-y-[2px] cursor-pointer transition-all group">
+                        <div class="flex items-center justify-between mb-3">
+                            <span
+                                class="material-icons-outlined text-primary group-hover:rotate-12 transition-transform">receipt</span>
+                            <span class="text-[10px] font-black uppercase text-slate-400">Tax Spend</span>
+                        </div>
+                        <h4 class="text-xl font-bold">₦21.4k</h4>
+                        <p class="text-[10px] text-slate-500 mt-1 uppercase font-bold tracking-tighter italic">Liability
+                            Threshold: 90%</p>
+                    </div>
+                    <div @click="showModal = 'upid-status'"
+                        class="bg-white dark:bg-slate-900 border border-black rounded-xl p-4 shadow-neobrutal hover:shadow-neobrutal-sm hover:translate-x-[2px] hover:translate-y-[2px] cursor-pointer transition-all group">
+                        <div class="flex items-center justify-between mb-3">
+                            <span
+                                class="material-icons-outlined text-lemon-green group-hover:scale-110 transition-transform">fingerprint</span>
+                            <span class="text-[10px] font-black uppercase text-slate-400">UPID Sync</span>
+                        </div>
+                        <h4 class="text-xl font-bold">HEALTHY</h4>
+                        <p class="text-[10px] text-slate-500 mt-1 uppercase font-bold tracking-tighter italic">Last
+                            check: 2m ago</p>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black uppercase text-slate-400">Date</label>
+                            <input type="date" class="w-full border-black border-2 rounded-lg py-2 focus:ring-0">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black uppercase text-slate-400">Amount</label>
+                            <input type="number" placeholder="0.00"
+                                class="w-full border-black border-2 rounded-lg py-2 focus:ring-0">
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black uppercase text-slate-400">Description</label>
+                        <input type="text" placeholder="Service fee, etc."
+                            class="w-full border-black border-2 rounded-lg py-2 focus:ring-0">
+                    </div>
+                    <button @click="addNotification('New entry saved successfully!'); showModal = null"
+                        class="w-full py-4 bg-primary border-2 border-black rounded-xl font-black uppercase shadow-neobrutal-sm hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all">
+                        Commit Entry
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal Content: Disburse -->
+            <div x-show="showModal === 'disburse'">
+                <h2 class="text-2xl font-black uppercase italic mb-2 tracking-tighter">Authorize Payroll</h2>
+                <p class="text-slate-500 text-sm mb-6 font-medium">This will disburse ₦142,500.00 to 60 recipients.</p>
+                <div class="p-4 bg-slate-50 dark:bg-white/5 border border-black rounded-lg mb-6">
+                    <div class="flex justify-between text-sm font-bold mb-1">
+                        <span>Total Net Pay</span>
+                        <span>₦142,500.00</span>
+                    </div>
+                    <div class="flex justify-between text-sm font-bold text-slate-400">
+                        <span>Transaction Fee</span>
+                        <span>₦1,250.00</span>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <button @click="showModal = null"
+                        class="flex-1 py-3 border-2 border-black rounded-lg font-bold hover:bg-slate-50 transition-colors uppercase text-sm">Cancel</button>
+                    <button @click="addNotification('Payroll disbursement initiated!'); showModal = null"
+                        class="flex-1 py-3 bg-primary border-2 border-black rounded-lg font-black shadow-neobrutal-sm hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all uppercase text-sm">Confirm</button>
+                </div>
+            </div>
+
+            <!-- Modal Content: Payroll Settings -->
+            <div x-show="showModal === 'payroll-settings'">
+                <h2 class="text-2xl font-black uppercase italic mb-2 tracking-tighter">Payroll Config</h2>
+                <div class="space-y-4">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black uppercase text-slate-400">Default Currency</label>
+                        <select class="w-full border-2 border-black rounded-lg py-2 focus:ring-0">
+                            <option>NGN (Local Ledger)</option>
+                            <option>USD (Offshore)</option>
+                        </select>
+                    </div>
+                    <div
+                        class="flex items-center justify-between p-3 border-2 border-black rounded-lg bg-lemon-green/10">
+                        <span class="text-xs font-bold uppercase">Auto-Calculate Tax</span>
+                        <div class="w-10 h-6 bg-black rounded-full relative p-1 cursor-pointer">
+                            <div class="w-4 h-4 bg-white rounded-full"></div>
+                        </div>
+                    </div>
+                    <button @click="addNotification('Payroll configuration updated'); showModal = null"
+                        class="w-full py-3 bg-black text-white border-2 border-black rounded-lg font-black shadow-neobrutal-sm">UPDATE
+                        CONFIG</button>
+                </div>
+            </div>
+
+            <!-- Modal Content: Tax Detail -->
+            <div x-show="showModal === 'tax-breakdown'">
+                <h2 class="text-2xl font-black uppercase italic mb-4 tracking-tighter">Tax Exposure</h2>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center p-3 border border-black rounded-lg">
+                        <span class="text-sm font-bold">WHT (Withholding Tax)</span>
+                        <span class="font-mono text-sm">₦12,500</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 border border-black rounded-lg">
+                        <span class="text-sm font-bold">VAT (Value Added Tax)</span>
+                        <span class="font-mono text-sm">₦4,200</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 border border-black rounded-lg bg-slate-50">
+                        <span class="text-sm font-bold uppercase italic">Total Accrued</span>
+                        <span class="font-mono text-sm font-black text-primary">₦16,700</span>
+                    </div>
+                    <button @click="addNotification('Transferring to Remita bucket...'); showModal = null"
+                        class="w-full py-4 bg-primary border-2 border-black rounded-xl font-black uppercase shadow-neobrutal-sm">Clear
+                        Liabilities</button>
+                </div>
+            </div>
+
+            <!-- Modal Content: UPID Status -->
+            <div x-show="showModal === 'upid-status'">
+                <h2 class="text-2xl font-black uppercase italic mb-2 tracking-tighter">Identity Integrity</h2>
+                <div class="flex flex-col items-center py-6">
+                    <div
+                        class="w-20 h-20 bg-lemon-green border-4 border-black rounded-full flex items-center justify-center mb-4">
+                        <span class="material-icons-outlined text-4xl animate-pulse">fingerprint</span>
+                    </div>
+                    <p class="text-sm font-bold uppercase mb-1">Syncing with Central Registry...</p>
+                    <p class="text-[10px] text-slate-500 font-mono">NODE: LAG-NG-002 | STATUS: OK</p>
+                </div>
+                <button @click="addNotification('Force re-indexing started...'); showModal = null"
+                    class="w-full py-3 border-2 border-black rounded-lg font-bold hover:bg-slate-50">RE-INDEX
+                    STAFF</button>
+            </div>
+        </div>
+    </div>
+    <!-- Sidebar -->
+    <aside
+        class="w-20 lg:w-64 h-full glass-sidebar flex flex-col justify-between shrink-0 z-20 relative transition-all duration-300">
+        <div>
+            <!-- MacOS Window Controls simulation -->
+            <div class="h-14 flex items-center px-6 gap-2">
+                <div class="w-3 h-3 rounded-full bg-red-500 border border-red-600/20"></div>
+                <div class="w-3 h-3 rounded-full bg-yellow-500 border border-yellow-600/20"></div>
+                <div class="w-3 h-3 rounded-full bg-green-500 border border-green-600/20"></div>
+            </div>
+            <!-- Logo -->
+            <div class="px-6 py-4 flex items-center gap-3">
+                <div
+                    class="w-8 h-8 bg-black dark:bg-white rounded-lg flex items-center justify-center shadow-neobrutal-sm">
+                    <span class="text-white dark:text-black font-bold text-lg">R</span>
+                </div>
+                <span class="hidden lg:block font-bold text-xl tracking-tight">REAVO</span>
+            </div>
+            <!-- Navigation -->
+            <nav class="mt-8 px-4 space-y-2">
+                <a class="flex items-center gap-3 px-4 py-3 bg-primary border border-black shadow-neobrutal rounded-lg text-black font-medium transition-transform active:translate-y-0.5 active:translate-x-0.5 active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] group"
+                    href="#">
+                    <span class="material-icons-outlined text-[20px]">dashboard</span>
+                    <span class="hidden lg:block">Command Center</span>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-black dark:text-slate-400 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors group"
+                    href="registry.html">
+                    <span
+                        class="material-icons-outlined text-[20px] group-hover:scale-110 transition-transform">people_alt</span>
+                    <span class="hidden lg:block">The Registry</span>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-black dark:text-slate-400 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors group"
+                    href="vault.html">
+                    <span
+                        class="material-icons-outlined text-[20px] group-hover:scale-110 transition-transform">lock</span>
+                    <span class="hidden lg:block">The Vault</span>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-black dark:text-slate-400 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors group"
+                    href="wallet.html">
+                    <span
+                        class="material-icons-outlined text-[20px] group-hover:scale-110 transition-transform">account_balance_wallet</span>
+                    <span class="hidden lg:block">Wallet</span>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-black dark:text-slate-400 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors group"
+                    href="reports.html">
+                    <span
+                        class="material-icons-outlined text-[20px] group-hover:scale-110 transition-transform">analytics</span>
+                    <span class="hidden lg:block">Reports</span>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-black dark:text-slate-400 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors group"
+                    href="settings.html">
+                    <span
+                        class="material-icons-outlined text-[20px] group-hover:scale-110 transition-transform">settings</span>
+                    <span class="hidden lg:block">Settings</span>
+                </a>
+            </nav>
+        </div>
+        <!-- User Profile -->
+        <div class="p-4 mb-2 relative">
+            <div @click="userDropdown = !userDropdown"
+                class="flex items-center gap-3 p-3 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-black dark:hover:border-white transition-colors cursor-pointer bg-white/50 dark:bg-black/20">
+                <img alt="User avatar" class="w-9 h-9 rounded-full border border-black object-cover"
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnlB5GipKRT69flPM9JEdpznVNZ3IN75njNjaR23bz1VKUTup1iDeZdCx77Z0f2urlnDDYzK_zV4eDbl0oDu1DV0rHiVazDAhc6SRTpnMJd5H3yFnR5qFpyCk4fFxArr4rIRcT25fVQSA5V-3r1OGC7RZ2TmDe3qGVtrAdzks4EPeJCjdhq68ek0bMXkQhhBJEjnvQ_O9FQmW1DD5fzrZ4UNFgD5-J3ph6T0MDJEfLkgfy8vdi796neNFMLPsfvruE8dPbzd8RIdI" />
+                <div class="hidden lg:block overflow-hidden">
+                    <p class="text-sm font-semibold truncate">Alex Chen</p>
+                    <p class="text-xs text-slate-500 truncate">Controller</p>
+                </div>
+            </div>
+
+            <!-- User Dropdown Menu -->
+            <div x-show="userDropdown" x-cloak @click.away="userDropdown = false"
+                class="absolute bottom-full left-4 mb-2 w-56 bg-white dark:bg-slate-900 border-2 border-black rounded-xl shadow-neobrutal p-2 z-50">
+                <a href="settings.html"
+                    class="flex items-center gap-3 px-3 py-2 hover:bg-primary rounded-lg transition-colors font-bold text-sm">
+                    <span class="material-icons-outlined text-sm">person</span> Profile
+                </a>
+                <button @click="addNotification('Security log exported'); userDropdown = false"
+                    class="w-full flex items-center gap-3 px-3 py-2 hover:bg-primary rounded-lg transition-colors font-bold text-sm">
+                    <span class="material-icons-outlined text-sm">history</span> Security Log
+                </button>
+                <div class="h-px bg-black my-1"></div>
+                <button @click="addNotification('Signing out...'); setTimeout(() => location.reload(), 1000)"
+                    class="w-full flex items-center gap-3 px-3 py-2 hover:bg-red-500 hover:text-white rounded-lg transition-colors font-bold text-sm">
+                    <span class="material-icons-outlined text-sm">logout</span> Logout
+                </button>
+            </div>
+        </div>
+    </aside>
+    <!-- Main Content -->
+    <main class="flex-1 h-full overflow-y-auto relative">
+        <div class="p-8 max-w-[1600px] mx-auto pb-32">
+            <!-- Header -->
+            <header class="flex justify-between items-end mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold mb-1">Good Morning, Controller</h1>
+                    <p class="text-slate-500 dark:text-slate-400 text-sm">Here's your financial overview for October 24,
+                        2023</p>
+                </div>
+                <div class="hidden md:flex gap-3">
+                    <button
+                        @click="addNotification('Generating Oct 2023 financial report...'); setTimeout(() => addNotification('Report downloaded successfully!', 'success'), 1500)"
+                        class="px-4 py-2 border border-black bg-white dark:bg-slate-800 rounded-lg shadow-neobrutal-sm hover:shadow-neobrutal transition-all active:shadow-none active:translate-x-[2px] active:translate-y-[2px] flex items-center gap-2 text-sm font-medium">
+                        <span class="material-icons-outlined text-sm">file_download</span>
+                        Export Report
+                    </button>
+                    <button @click="showModal = 'new-entry'"
+                        class="px-4 py-2 border border-black bg-black text-white dark:bg-white dark:text-black rounded-lg shadow-neobrutal-sm hover:shadow-neobrutal transition-all active:shadow-none active:translate-x-[2px] active:translate-y-[2px] flex items-center gap-2 text-sm font-medium">
+                        <span class="material-icons-outlined text-sm">add</span>
+                        New Entry
+                    </button>
+                </div>
+            </header>
+
+            <!-- Command Center & The Big Two (Replaced) -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+
+                <!-- Card 1: Monthly Salaries -->
+                <div
+                    class="bg-white dark:bg-slate-900 border-2 border-black rounded-xl p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden flex flex-col justify-between h-80 transition-all hover:-translate-y-1 hover:shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]">
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <h2 class="text-2xl font-black uppercase italic tracking-tighter">Monthly Salaries</h2>
+                            <div
+                                class="bg-slate-100 border border-black px-2 py-1 rounded text-[10px] font-bold uppercase text-slate-500">
+                                Cycle: Oct-26</div>
+                        </div>
+                        <p class="text-xs text-slate-500 uppercase font-bold mb-1">Total Net Pay</p>
+                        <h3 class="text-5xl font-black tracking-tight mb-2">₦12,450,000.00</h3>
+
+                        <!-- Wallet Indicator -->
+                        <div class="flex items-center gap-2 mt-4">
+                            <div class="w-2.5 h-2.5 rounded-full bg-primary border border-black"></div>
+                            <p class="text-xs font-mono font-bold text-slate-600">Maplerad Wallet: <span
+                                    class="text-black">₦15,000,000.00</span></p>
+                        </div>
+                    </div>
+
+                    <button @click="showModal = 'disburse'"
+                        class="w-full py-4 bg-primary text-black border-2 border-black rounded-lg font-black text-xl uppercase shadow-neobrutal-sm hover:shadow-neobrutal transition-all flex items-center justify-center gap-3 group btn-press-primary">
+                        <span class="material-icons-outlined group-hover:scale-110 transition-transform">payments</span>
+                        Disburse Salaries
+                    </button>
+                </div>
+
+                <!-- Card 2: Statutory Taxes -->
+                <div x-data="{ remitting: false }"
+                    class="bg-white dark:bg-slate-900 border-2 border-black rounded-xl p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden flex flex-col justify-between h-80 transition-all hover:-translate-y-1 hover:shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]">
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <h2 class="text-2xl font-black uppercase italic tracking-tighter">Statutory Taxes</h2>
+                            <div
+                                class="bg-lemon-green/20 border border-lemon-green px-2 py-1 rounded text-[10px] font-bold uppercase text-green-800 flex items-center gap-1">
+                                <span class="material-icons-outlined text-xs">verified</span> NRS VALIDATED
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-500 uppercase font-bold mb-1">Total PAYE + Levies</p>
+                        <h3 class="text-5xl font-black tracking-tight mb-2">₦2,105,700.50</h3>
+
+                        <!-- TIN Status -->
+                        <div class="flex items-center gap-2 mt-4">
+                            <span class="material-icons-outlined text-lemon-green text-sm">check_circle</span>
+                            <p class="text-xs font-mono font-bold text-slate-600">All Staff TINs Matched</p>
+                        </div>
+                    </div>
+
+                    <button
+                        @click="if(!remitting) { remitting = true; setTimeout(() => { remitting = false; addNotification('RRR Generated: 2900-XXXX-YYYY', 'success'); }, 2000); }"
+                        :disabled="remitting"
+                        class="w-full py-4 bg-lemon-green text-black border-2 border-black rounded-lg font-black text-xl uppercase shadow-neobrutal-sm hover:shadow-neobrutal transition-all flex items-center justify-center gap-3 group btn-press disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span x-show="!remitting" class="flex items-center gap-3">
+                            <span
+                                class="material-icons-outlined group-hover:rotate-12 transition-transform">receipt_long</span>
+                            Remit Taxes (RRR)
+                        </span>
+                        <span x-show="remitting" class="flex items-center gap-2">
+                            <span
+                                class="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
+                            Generating RRR...
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Secondary Metrics & Feed -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+                <!-- Live Map (Visual Candy) -->
+                <div
+                    class="bg-white dark:bg-slate-900 border-2 border-black rounded-xl h-64 relative overflow-hidden shadow-neobrutal">
+                    <img class="w-full h-full object-cover grayscale opacity-20"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuDlQs4N1_5DUMMNFdJRZEWc2EkuVdH4UfF7K40QAbLZhq9qQ4Ajx8KqAVJpHMJVEr2dUPXDzrsTD8vLO0la577XJvkb12Dr_WXkFXZa2kEeAOgJbzNFCaMoehIE-CKh47r7SpuiOk6ZeRIY6OjF-YMCeAxmoPXVQANP92ci9B3FL3fZKcp7Xxtx2cNAmx9YSDPKymy9NzTUq3bUuSZBzhq_DW19EtfbOddLBhpOyTSM0lGXBfI19b0U4-gFn0rS2CoyWMkpysa8KoA" />
+                    <div class="absolute inset-0 bg-primary/5"></div>
+                    <div class="absolute top-4 left-4">
+                        <span
+                            class="bg-white border border-black px-2 py-1 text-[10px] font-bold uppercase shadow-sm">Active
+                            Locations</span>
+                    </div>
+                    <!-- Ping Animations -->
+                    <div
+                        class="absolute top-1/3 left-1/4 w-3 h-3 bg-lemon-green rounded-full border border-black animate-ping">
+                    </div>
+                    <div class="absolute top-1/3 left-1/4 w-3 h-3 bg-lemon-green rounded-full border border-black">
+                    </div>
+                </div>
+
+                <!-- Transaction Feed -->
+                <div
+                    class="md:col-span-2 bg-white dark:bg-slate-900 border-2 border-black rounded-xl h-64 shadow-neobrutal flex flex-col">
+                    <div class="p-4 border-b border-black bg-slate-50 flex justify-between items-center">
+                        <h3 class="font-black uppercase italic">Wallet Activity</h3>
+                        <div class="flex gap-2">
+                            <span class="w-2 h-2 rounded-full bg-green-500 border border-black"></span>
+                            <span class="text-[10px] font-bold uppercase text-slate-500">Live Stream</span>
+                        </div>
+                    </div>
+                    <div class="overflow-y-auto p-0">
+                        <table class="w-full text-left text-sm">
+                            <tbody class="divide-y divide-slate-100">
+                                <tr class="hover:bg-lemon-green/10 transition-colors">
+                                    <td class="p-3 font-mono font-bold text-slate-500">09:42 AM</td>
+                                    <td class="p-3 font-bold">Stripe Settlement</td>
+                                    <td class="p-3 text-right font-mono text-green-600 font-bold">+₦4,200,000</td>
+                                </tr>
+                                <tr class="hover:bg-lemon-green/10 transition-colors">
+                                    <td class="p-3 font-mono font-bold text-slate-500">Yesterday</td>
+                                    <td class="p-3 font-bold">MainOne Cable (Internet)</td>
+                                    <td class="p-3 text-right font-mono text-slate-900 font-bold">-₦150,000</td>
+                                </tr>
+                                <tr class="hover:bg-lemon-green/10 transition-colors">
+                                    <td class="p-3 font-mono font-bold text-slate-500">Yesterday</td>
+                                    <td class="p-3 font-bold">AWS EMEA (Server)</td>
+                                    <td class="p-3 text-right font-mono text-slate-900 font-bold">-₦85,200</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <!-- The AURACLE (AI Assistant) -->
+        <div x-data="{ scheduled: false }"
+            class="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-none">
+            <!-- Chat bubble -->
+            <div
+                class="mb-4 bg-white dark:bg-slate-900 border border-black rounded-xl rounded-tr-sm shadow-[8px_8px_0px_0px_rgba(183,141,247,1)] p-4 max-w-sm pointer-events-auto transform transition-all hover:scale-105 origin-bottom-right">
+                <div class="flex items-start gap-3">
+                    <div
+                        class="w-8 h-8 rounded bg-black text-primary flex items-center justify-center font-bold text-xs shrink-0">
+                        AI
+                    </div>
+                    <div>
+                        <p x-show="!scheduled" class="text-sm font-medium leading-snug">I recommend rotating your
+                            Maplerad API key every 90 days. Would you like me to schedule a reminder?</p>
+                        <p x-show="scheduled" class="text-sm font-black italic text-primary leading-snug">Done! I've
+                            scheduled your API key rotation reminder for January 2026.</p>
+
+                        <div x-show="!scheduled" class="mt-2 flex gap-2">
+                            <button @click="scheduled = true; addNotification('Reminder scheduled!', 'success')"
+                                class="text-xs font-bold border border-black px-2 py-1 rounded hover:bg-primary hover:text-white transition-colors">Yes,
+                                schedule</button>
+                            <button @click="addNotification('Scheduling dismissed')"
+                                class="text-xs text-slate-500 hover:text-black transition-colors px-1 py-1">Dismiss</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Input Bar -->
+            <div
+                class="w-96 bg-white/90 backdrop-blur-md dark:bg-slate-900/90 border border-black rounded-full shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center p-1 pl-4 gap-2 pointer-events-auto">
+                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <input @keyup.enter="addNotification('The AURACLE is thinking...')"
+                    class="bg-transparent border-none focus:ring-0 text-sm w-full font-medium placeholder:text-slate-400"
+                    placeholder="Ask The AURACLE..." type="text" />
+                <button @click="addNotification('The AURACLE is thinking...')"
+                    class="w-8 h-8 bg-black rounded-full flex items-center justify-center text-primary hover:text-white transition-colors">
+                    <span class="material-icons-outlined text-[18px]">arrow_upward</span>
+                </button>
+            </div>
+            <div class="mt-1 mr-4 text-[10px] font-bold tracking-widest text-slate-400 uppercase">The AURACLE v2.0</div>
+        </div>
+    </main>
+</body>
+
+</html>

@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>REAVO - SME Onboarding (KYB)</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;family=Material+Icons+Outlined&amp;display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#b78df7",
+                        "background-light": "#f7f6f8",
+                        "background-dark": "#171022",
+                        "lemon-green": "#b0f78d",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+                    boxShadow: {
+                        'neobrutal': '4px 4px 0px 0px rgba(0,0,0,1)',
+                        'neobrutal-sm': '2px 2px 0px 0px rgba(0,0,0,1)',
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Glassmorphism utility */
+        .glass-sidebar {
+            background: rgba(247, 246, 248, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .dark .glass-sidebar {
+            background: rgba(23, 16, 34, 0.65);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Neo-brutalist active state for buttons */
+        .btn-press:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 1);
+        }
+
+        .btn-press-primary:active {
+            transform: translate(4px, 4px);
+            box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 1);
+        }
+
+        [x-cloak] {
+            display: none !important;
+        }
+
+        @keyframes toast-in {
+            from {
+                transform: translateY(100%) scale(0.9);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .animate-toast {
+            animation: toast-in 0.3s ease-out forwards;
+        }
+    </style>
+</head>
+
+<body x-data="{ 
+        step: 1,
+        companyName: '',
+        rcNumber: '',
+        industry: '',
+        tin: '',
+        validatingTin: false,
+        tinVerified: false,
+        staffCount: 0,
+        calculatingSubscription: false,
+        subscriptionFee: 0,
+        vat: 0,
+        totalSubscription: 0,
+        paymentStatus: 'pending', // pending, processing, success
+        kybFiles: [],
+        
+        validateTIN() {
+            if (!this.tin) return;
+            this.validatingTin = true;
+            setTimeout(() => {
+                this.validatingTin = false;
+                this.tinVerified = true;
+                this.addNotification('TIN verified with NRS/Remita API', 'success');
+            }, 1500);
+        },
+        
+        calculateSubscription() {
+            if (this.staffCount <= 0) return;
+            this.calculatingSubscription = true;
+            // Formula: (Staff Count × ₦1,200) + 7.5% VAT
+            const baseFee = this.staffCount * 1200;
+            const vatAmount = baseFee * 0.075;
+            this.subscriptionFee = baseFee;
+            this.vat = vatAmount;
+            this.totalSubscription = baseFee + vatAmount;
+            
+            setTimeout(() => {
+                this.calculatingSubscription = false;
+                this.step = 3; 
+            }, 800);
+        },
+        
+        processPayment() {
+            this.paymentStatus = 'processing';
+            setTimeout(() => {
+                this.paymentStatus = 'success';
+                this.addNotification('Payment successful! Access granted.', 'success');
+                setTimeout(() => {
+                   this.step = 4;
+                }, 1000);
+            }, 2000);
+        },
+
+        completeOnboarding() {
+            this.addNotification('Redirecting to Command Center...', 'success');
+            setTimeout(() => {
+                window.location.href = 'app.html';
+            }, 1500);
+        },
+
+        notifications: [],
+        addNotification(msg, type = 'success') {
+            const id = Date.now();
+            this.notifications.push({ id, msg, type });
+            setTimeout(() => this.notifications = this.notifications.filter(n => n.id !== id), 3000);
+        }
+    }"
+    class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white min-h-screen flex flex-col selection:bg-primary selection:text-white relative overflow-hidden">
+
+    <!-- Notification System -->
+    <div class="fixed top-6 left-1/2 -translate-x-1/2 z-[100] space-y-2 pointer-events-none">
+        <template x-for="n in notifications" :key="n.id">
+            <div class="animate-toast pointer-events-auto px-6 py-3 border border-black rounded-lg shadow-neobrutal flex items-center gap-3 min-w-[300px]"
+                :class="n.type === 'success' ? 'bg-lemon-green text-black' : 'bg-primary text-black'">
+                <span class="material-icons-outlined" x-text="n.type === 'success' ? 'check_circle' : 'info'"></span>
+                <span class="font-bold text-sm tracking-tight" x-text="n.msg"></span>
+            </div>
+        </template>
+    </div>
+
+    <!-- Background Decoration -->
+    <div class="absolute inset-0 z-0 pointer-events-none opacity-50">
+        <div class="absolute top-[-10%] right-[-5%] w-[400px] h-[400px] bg-primary/20 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] bg-lemon-green/20 rounded-full blur-3xl">
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <main class="relative z-10 flex-1 flex flex-col items-center justify-center p-6">
+
+        <!-- Header / Progress -->
+        <div class="w-full max-w-2xl mb-8">
+            <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                    <div
+                        class="w-8 h-8 bg-black text-white rounded-lg flex items-center justify-center font-bold shadow-neobrutal-sm">
+                        R</div>
+                    <span class="font-bold text-xl tracking-tight">REAVO <span
+                            class="text-slate-500 font-normal text-sm ml-1">Onboarding</span></span>
+                </div>
+                <div class="text-xs font-bold uppercase tracking-widest text-slate-500">Step <span x-text="step"></span>
+                    of 4</div>
+            </div>
+            <!-- Progress Bar -->
+            <div class="h-2 w-full bg-slate-200 border border-black rounded-full overflow-hidden">
+                <div class="h-full bg-primary transition-all duration-500 ease-out"
+                    :style="'width: ' + ((step / 4) * 100) + '%'"></div>
+            </div>
+        </div>
+
+        <!-- Card Container -->
+        <div class="bg-white dark:bg-slate-900 border-2 border-black rounded-2xl shadow-neobrutal w-full max-w-2xl overflow-hidden transition-all duration-300"
+            x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95"
+            x-transition:enter-end="opacity-100 scale-100">
+
+            <!-- Step 1: Identity & Tax Integration -->
+            <div x-show="step === 1" class="p-8">
+                <div class="mb-6">
+                    <h1 class="text-3xl font-black uppercase italic tracking-tighter mb-2">Company Identity</h1>
+                    <p class="text-slate-500 font-medium text-sm">Let's verify your business entity with the Nigerian
+                        Corporate Registry.</p>
+                </div>
+
+                <div class="space-y-4">
+                    <!-- Company Name -->
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black uppercase text-slate-400 tracking-wider">Company
+                            Name</label>
+                        <input x-model="companyName" type="text" placeholder="e.g. Glo Limited"
+                            class="w-full border-2 border-black rounded-xl py-3 px-4 font-bold focus:ring-0 focus:border-primary transition-colors bg-background-light">
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- RC Number -->
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-slate-400 tracking-wider">RC
+                                Number</label>
+                            <input x-model="rcNumber" type="text" placeholder="RC-12345678"
+                                class="w-full border-2 border-black rounded-xl py-3 px-4 font-bold focus:ring-0 focus:border-primary transition-colors bg-background-light">
+                        </div>
+
+                        <!-- Industry -->
+                        <div class="space-y-1">
+                            <label
+                                class="text-[10px] font-black uppercase text-slate-400 tracking-wider">Industry</label>
+                            <select x-model="industry"
+                                class="w-full border-2 border-black rounded-xl py-3 px-4 font-bold focus:ring-0 focus:border-primary transition-colors bg-background-light">
+                                <option value="" disabled selected>Select Industry</option>
+                                <option value="fintech">Fintech</option>
+                                <option value="logistics">Logistics</option>
+                                <option value="retail">Retail / E-commerce</option>
+                                <option value="healthcare">Healthcare</option>
+                                <option value="agriculture">Agriculture</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- TIN Validation -->
+                    <div class="p-4 border-2 border-black border-dashed rounded-xl bg-lemon-green/5 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <label class="text-[10px] font-black uppercase text-primary tracking-wider">Tax
+                                Identification Number (TIN)</label>
+                            <span x-show="tinVerified"
+                                class="text-[10px] font-bold uppercase text-green-600 flex items-center gap-1">
+                                <span class="material-icons-outlined text-sm">verified</span> Verified
+                            </span>
+                        </div>
+                        <div class="flex gap-2">
+                            <input x-model="tin" type="text" placeholder="10-digit TIN"
+                                class="flex-1 border-2 border-black rounded-lg py-2 px-3 font-mono font-bold focus:ring-0">
+                            <button @click="validateTIN()" :disabled="!tin || validatingTin || tinVerified"
+                                class="px-4 py-2 bg-black text-white border-2 border-black rounded-lg font-bold shadow-neobrutal-sm hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                                <span x-show="!validatingTin && !tinVerified">Verify</span>
+                                <span x-show="validatingTin" class="flex items-center gap-2">
+                                    <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg"
+                                        fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                            stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                        </path>
+                                    </svg>
+                                </span>
+                                <span x-show="tinVerified" class="material-icons-outlined">check</span>
+                            </button>
+                        </div>
+                        <p class="text-[10px] text-slate-500 italic">We hit the NRS/Remita API to validate your
+                            corporate tax status instantly.</p>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex justify-end">
+                    <button
+                        @click="if(companyName && rcNumber && tinVerified) step = 2; else addNotification('Please complete all fields and verify TIN', 'info')"
+                        class="px-8 py-4 bg-primary border-2 border-black rounded-xl font-black uppercase text-lg shadow-neobrutal hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 transition-all flex items-center gap-2 btn-press-primary">
+                        Next Step <span class="material-icons-outlined">arrow_forward</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 2: Quota & Subscription -->
+            <div x-show="step === 2" class="p-8" x-cloak>
+                <div class="mb-6">
+                    <h1 class="text-3xl font-black uppercase italic tracking-tighter mb-2">Staff Quota</h1>
+                    <p class="text-slate-500 font-medium text-sm">How many active employees do you plan to manage on
+                        REAVO?</p>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="space-y-2">
+                        <label class="text-xs font-black uppercase text-slate-400 tracking-wider">Current Staff
+                            Count</label>
+                        <div class="relative">
+                            <span
+                                class="absolute left-4 top-1/2 -translate-y-1/2 material-icons-outlined text-slate-400">groups</span>
+                            <input x-model.number="staffCount" type="number" min="1" placeholder="0"
+                                class="w-full border-2 border-black rounded-xl py-4 pl-12 pr-4 text-2xl font-black focus:ring-0 focus:border-primary transition-colors bg-background-light">
+                        </div>
+                        <p class="text-xs text-slate-500 font-medium text-right">Standard Rate: ₦1,200 / employee /
+                            month</p>
+                    </div>
+
+                    <!-- Preview Card -->
+                    <div x-show="staffCount > 0" class="p-6 bg-primary/20 border-2 border-black rounded-xl space-y-4"
+                        x-transition:enter="transition ease-out duration-300 transform"
+                        x-transition:enter-start="opacity-0 translate-y-4"
+                        x-transition:enter-end="opacity-100 translate-y-0">
+                        <div class="flex justify-between items-center border-b border-black/10 pb-2">
+                            <span class="text-sm font-bold">Subtotal (Monthly)</span>
+                            <span class="font-mono font-bold"
+                                x-text="'₦' + (staffCount * 1200).toLocaleString()"></span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-black/10 pb-2">
+                            <span class="text-sm font-bold text-slate-500">VAT (7.5%)</span>
+                            <span class="font-mono font-bold text-slate-500"
+                                x-text="'₦' + ((staffCount * 1200) * 0.075).toLocaleString()"></span>
+                        </div>
+                        <div class="flex justify-between items-center pt-2">
+                            <span class="text-lg font-black uppercase italic">Total Due Now</span>
+                            <div class="text-right">
+                                <span class="block text-3xl font-black tracking-tighter"
+                                    x-text="'₦' + ((staffCount * 1200) * 1.075).toLocaleString()"></span>
+                                <span class="text-[10px] font-bold uppercase text-slate-500">Billed Monthly</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="mt-8 flex justify-between items-center">
+                    <button @click="step = 1"
+                        class="text-sm font-bold text-slate-500 hover:text-black hover:underline uppercase">Back</button>
+                    <button @click="calculateSubscription()" :disabled="staffCount <= 0 || calculatingSubscription"
+                        class="px-8 py-4 bg-primary border-2 border-black rounded-xl font-black uppercase text-lg shadow-neobrutal hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 transition-all flex items-center gap-2 btn-press-primary disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span x-show="!calculatingSubscription">Confirm Quota</span>
+                        <span x-show="calculatingSubscription" class="flex items-center gap-2">
+                            Calculating... <svg class="animate-spin h-5 w-5 text-black"
+                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                    stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                </path>
+                            </svg>
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 3: The Paywall -->
+            <div x-show="step === 3" class="p-8 bg-primary/5" x-cloak>
+                <div class="mb-6 text-center">
+                    <div
+                        class="w-16 h-16 bg-primary text-black border-2 border-black rounded-full flex items-center justify-center mx-auto mb-4 shadow-neobrutal">
+                        <span class="material-icons-outlined text-3xl">lock</span>
+                    </div>
+                    <h1 class="text-3xl font-black uppercase italic tracking-tighter mb-2">Activate Account</h1>
+                    <p class="text-slate-500 font-medium text-sm">Dashboard access is securely locked until your first
+                        subscription payment is processed.</p>
+                </div>
+
+                <!-- Lavender Paywall Card -->
+                <div
+                    class="bg-primary text-black border-2 border-black rounded-xl p-6 shadow-neobrutal mb-6 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10">
+                        <span class="material-icons-outlined text-9xl">receipt_long</span>
+                    </div>
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-start mb-6">
+                            <div>
+                                <h2 class="text-lg font-black uppercase tracking-wider">Initial Subscription</h2>
+                                <p class="text-sm font-medium opacity-80">14-Day Pro-rated Allocation</p>
+                            </div>
+                            <div class="bg-black text-white px-2 py-1 rounded text-xs font-bold uppercase">Due Today
+                            </div>
+                        </div>
+
+                        <div class="flex items-baseline gap-1 mb-2">
+                            <span class="text-5xl font-black tracking-tighter"
+                                x-text="'₦' + totalSubscription.toLocaleString()"></span>
+                            <span class="text-sm font-bold opacity-80">NGN</span>
+                        </div>
+
+                        <div class="h-px bg-black/20 my-4"></div>
+
+                        <div class="grid grid-cols-2 gap-4 text-sm font-bold">
+                            <div>
+                                <span class="block opacity-60 text-[10px] uppercase">Staff Quota</span>
+                                <span x-text="staffCount + ' Employees'"></span>
+                            </div>
+                            <div class="text-right">
+                                <span class="block opacity-60 text-[10px] uppercase">VAT (7.5%)</span>
+                                <span x-text="'Included'"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button @click="processPayment()" :disabled="paymentStatus !== 'pending'"
+                    class="w-full py-4 bg-black text-white border-2 border-black rounded-xl font-black uppercase text-lg shadow-neobrutal hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 transition-all flex items-center justify-center gap-3 disabled:opacity-80">
+                    <span x-show="paymentStatus === 'pending'" class="flex items-center gap-2">
+                        <span class="material-icons-outlined">credit_card</span> Pay <span
+                            x-text="'₦' + totalSubscription.toLocaleString()"></span> & Unlock
+                    </span>
+                    <span x-show="paymentStatus === 'processing'" class="flex items-center gap-2">
+                        Processing Payment... <svg class="animate-spin h-5 w-5 text-white"
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+                    </span>
+                    <span x-show="paymentStatus === 'success'" class="flex items-center gap-2">
+                        <span class="material-icons-outlined">check_circle</span> Payment Successful
+                    </span>
+                </button>
+            </div>
+
+            <!-- Step 4: KYB Completion & Wallet -->
+            <div x-show="step === 4" class="p-8" x-cloak>
+                <div class="mb-6">
+                    <h1 class="text-3xl font-black uppercase italic tracking-tighter mb-2">Final Verification</h1>
+                    <p class="text-slate-500 font-medium text-sm">To comply with CBN regulations, please upload a valid
+                        Government ID.</p>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- File Upload -->
+                    <div
+                        class="border-2 border-black border-dashed rounded-xl p-8 flex flex-col items-center justify-center bg-slate-50 hover:bg-lemon-green/5 transition-colors cursor-pointer group">
+                        <div
+                            class="w-12 h-12 bg-white border-2 border-black rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-sm">
+                            <span class="material-icons-outlined">cloud_upload</span>
+                        </div>
+                        <p class="font-bold text-sm uppercase mb-1">Upload Director's ID</p>
+                        <p class="text-xs text-slate-400">Passport, NIN, or Driver's License</p>
+                    </div>
+
+                    <!-- Integrations Section -->
+                    <div class="space-y-4">
+                        <h3 class="text-xs font-black uppercase tracking-wider border-b border-black pb-1">Required
+                            Integrations</h3>
+
+                        <!-- Maplerad Wallet -->
+                        <div
+                            class="p-3 bg-white border border-black rounded-xl flex items-center justify-between shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="w-8 h-8 bg-black rounded flex items-center justify-center text-white font-bold text-xs">
+                                    M</div>
+                                <div>
+                                    <p class="text-xs font-bold uppercase">Maplerad Wallet</p>
+                                    <p class="text-[10px] text-slate-500">Active: 8229...21</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold text-green-600 uppercase flex items-center gap-1">
+                                <span class="material-icons-outlined text-sm">check_circle</span> Linked
+                            </span>
+                        </div>
+
+                        <!-- Google Drive -->
+                        <div
+                            class="p-3 bg-white border border-black rounded-xl flex items-center justify-between shadow-sm cursor-pointer hover:bg-slate-50 transition-colors">
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="w-8 h-8 bg-white border border-black rounded flex items-center justify-center p-1">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg"
+                                        class="w-full h-full">
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold uppercase">Google Drive Backup</p>
+                                    <p class="text-[10px] text-slate-500">Sync Vault Storage</p>
+                                </div>
+                            </div>
+                            <button
+                                class="px-3 py-1 border border-black rounded bg-slate-100 text-[10px] font-bold uppercase hover:bg-black hover:text-white transition-colors">Connect</button>
+                        </div>
+
+                        <!-- PFA Integration -->
+                        <div
+                            class="p-3 bg-white border border-black rounded-xl flex items-center justify-between shadow-sm cursor-pointer hover:bg-slate-50 transition-colors">
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="w-8 h-8 bg-green-100 border border-black rounded flex items-center justify-center text-green-700">
+                                    <span class="material-icons-outlined text-sm">savings</span>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold uppercase">Link PFA Portal</p>
+                                    <p class="text-[10px] text-slate-500">Automate Pension routing</p>
+                                </div>
+                            </div>
+                            <button
+                                class="px-3 py-1 border border-black rounded bg-slate-100 text-[10px] font-bold uppercase hover:bg-black hover:text-white transition-colors">Link</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8">
+                    <button @click="completeOnboarding()"
+                        class="w-full py-4 bg-lemon-green border-2 border-black rounded-xl font-black uppercase text-lg shadow-neobrutal hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 transition-all flex items-center justify-center gap-2 btn-press">
+                        Enter Command Center <span class="material-icons-outlined">rocket_launch</span>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-8 text-center">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Powered by REAVO Engine v2.0</p>
+        </div>
+
+    </main>
+
+</body>
+
+</html>

@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>REAVO - Settings</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;family=Material+Icons+Outlined&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#b78df7",
+                        "background-light": "#f7f6f8",
+                        "background-dark": "#171022",
+                        "lemon-green": "#b0f78d",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+                    boxShadow: {
+                        'neobrutal': '4px 4px 0px 0px rgba(0,0,0,1)',
+                        'neobrutal-sm': '2px 2px 0px 0px rgba(0,0,0,1)',
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Glassmorphism utility */
+        .glass-sidebar {
+            background: rgba(247, 246, 248, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .dark .glass-sidebar {
+            background: rgba(23, 16, 34, 0.65);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Neo-brutalist active state for buttons */
+        .btn-press:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 1);
+        }
+
+        .btn-press-primary:active {
+            transform: translate(4px, 4px);
+            box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 1);
+        }
+
+        [x-cloak] {
+            display: none !important;
+        }
+
+        @keyframes toast-in {
+            from {
+                transform: translateY(100%) scale(0.9);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .animate-toast {
+            animation: toast-in 0.3s ease-out forwards;
+        }
+    </style>
+</head>
+
+<body x-data="{ 
+        notifications: [],
+        showModal: null,
+        userDropdown: false,
+        activeTab: 'company',
+        mapleradTesting: false,
+        remitaTesting: false,
+        addNotification(msg, type = 'success') {
+            const id = Date.now();
+            this.notifications.push({ id, msg, type });
+            setTimeout(() => this.notifications = this.notifications.filter(n => n.id !== id), 3000);
+        }
+    }"
+    class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white h-screen overflow-hidden flex selection:bg-primary selection:text-white">
+
+    <!-- Notification System -->
+    <div class="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] space-y-2 pointer-events-none">
+        <template x-for="n in notifications" :key="n.id">
+            <div class="animate-toast pointer-events-auto px-6 py-3 border border-black rounded-lg shadow-neobrutal flex items-center gap-3 min-w-[300px]"
+                :class="n.type === 'success' ? 'bg-lemon-green text-black' : 'bg-primary text-black'">
+                <span class="material-icons-outlined" x-text="n.type === 'success' ? 'check_circle' : 'info'"></span>
+                <span class="font-bold text-sm tracking-tight" x-text="n.msg"></span>
+            </div>
+        </template>
+    </div>
+
+    <!-- Global Modal Overlay -->
+    <div x-show="showModal" x-cloak x-transition.opacity
+        class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+        <div x-show="showModal" x-transition.scale.origin.center @click.away="showModal = null"
+            class="bg-white dark:bg-slate-900 border-2 border-black rounded-2xl shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] max-w-lg w-full p-8 relative">
+
+            <button @click="showModal = null" class="absolute top-4 right-4 hover:rotate-90 transition-transform">
+                <span class="material-icons-outlined font-bold">close</span>
+            </button>
+
+            <!-- Modal Content: Delete Account -->
+            <div x-show="showModal === 'delete-account'">
+                <div class="flex items-center gap-3 mb-4 text-red-600">
+                    <span class="material-icons-outlined text-4xl">warning</span>
+                    <h2 class="text-2xl font-black uppercase italic tracking-tighter">Destroy Company?</h2>
+                </div>
+                <p class="text-slate-500 text-sm mb-6 font-medium leading-relaxed">This action is irreversible. All
+                    staff UPIDs, historical tax ledgers, and vault documents will be wiped from existence.</p>
+                <div class="space-y-4">
+                    <input type="text" placeholder="Type DELETE to confirm"
+                        class="w-full border-red-500 border-2 rounded-lg py-2 focus:ring-0 font-bold uppercase placeholder:text-red-200">
+                    <div class="flex gap-4">
+                        <button @click="showModal = null"
+                            class="flex-1 py-3 border-2 border-black rounded-lg font-bold">ABORT</button>
+                        <button @click="addNotification('Account scheduled for deletion.'); showModal = null"
+                            class="flex-1 py-3 bg-red-600 text-white border-2 border-black rounded-lg font-black shadow-neobrutal-sm">I
+                            UNDERSTAND</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Sidebar -->
+    <aside
+        class="w-20 lg:w-64 h-full glass-sidebar flex flex-col justify-between shrink-0 z-20 relative transition-all duration-300">
+        <div>
+            <!-- MacOS Window Controls simulation -->
+            <div class="h-14 flex items-center px-6 gap-2">
+                <div class="w-3 h-3 rounded-full bg-red-500 border border-red-600/20"></div>
+                <div class="w-3 h-3 rounded-full bg-yellow-500 border border-yellow-600/20"></div>
+                <div class="w-3 h-3 rounded-full bg-green-500 border border-green-600/20"></div>
+            </div>
+            <!-- Logo -->
+            <div class="px-6 py-4 flex items-center gap-3">
+                <div
+                    class="w-8 h-8 bg-black dark:bg-white rounded-lg flex items-center justify-center shadow-neobrutal-sm">
+                    <span class="text-white dark:text-black font-bold text-lg">R</span>
+                </div>
+                <span class="hidden lg:block font-bold text-xl tracking-tight">REAVO</span>
+            </div>
+            <!-- Navigation -->
+            <nav class="mt-8 px-4 space-y-2">
+                <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-black dark:text-slate-400 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors group"
+                    href="app.html">
+                    <span
+                        class="material-icons-outlined text-[20px] group-hover:scale-110 transition-transform">dashboard</span>
+                    <span class="hidden lg:block">Command Center</span>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-black dark:text-slate-400 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors group"
+                    href="registry.html">
+                    <span
+                        class="material-icons-outlined text-[20px] group-hover:scale-110 transition-transform">people_alt</span>
+                    <span class="hidden lg:block">The Registry</span>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-black dark:text-slate-400 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors group"
+                    href="vault.html">
+                    <span
+                        class="material-icons-outlined text-[20px] group-hover:scale-110 transition-transform">lock</span>
+                    <span class="hidden lg:block">The Vault</span>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-black dark:text-slate-400 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors group"
+                    href="wallet.html">
+                    <span
+                        class="material-icons-outlined text-[20px] group-hover:scale-110 transition-transform">account_balance_wallet</span>
+                    <span class="hidden lg:block">Wallet</span>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-black dark:text-slate-400 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors group"
+                    href="reports.html">
+                    <span
+                        class="material-icons-outlined text-[20px] group-hover:scale-110 transition-transform">analytics</span>
+                    <span class="hidden lg:block">Reports</span>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 bg-primary border border-black shadow-neobrutal rounded-lg text-black font-medium transition-transform active:translate-y-0.5 active:translate-x-0.5 active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] group"
+                    href="#">
+                    <span class="material-icons-outlined text-[20px]">settings</span>
+                    <span class="hidden lg:block">Settings</span>
+                </a>
+            </nav>
+        </div>
+        <!-- User Profile -->
+        <div class="p-4 mb-2 relative">
+            <div @click="userDropdown = !userDropdown"
+                class="flex items-center gap-3 p-3 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-black dark:hover:border-white transition-colors cursor-pointer bg-white/50 dark:bg-black/20">
+                <img alt="User avatar" class="w-9 h-9 rounded-full border border-black object-cover"
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnlB5GipKRT69flPM9JEdpznVNZ3IN75njNjaR23bz1VKUTup1iDeZdCx77Z0f2urlnDDYzK_zV4eDbl0oDu1DV0rHiVazDAhc6SRTpnMJd5H3yFnR5qFpyCk4fFxArr4rIRcT25fVQSA5V-3r1OGC7RZ2TmDe3qGVtrAdzks4EPeJCjdhq68ek0bMXkQhhBJEjnvQ_O9FQmW1DD5fzrZ4UNFgD5-J3ph6T0MDJEfLkgfy8vdi796neNFMLPsfvruE8dPbzd8RIdI" />
+                <div class="hidden lg:block overflow-hidden">
+                    <p class="text-sm font-semibold truncate">Alex Chen</p>
+                    <p class="text-xs text-slate-500 truncate">Controller</p>
+                </div>
+            </div>
+
+            <!-- User Dropdown Menu -->
+            <div x-show="userDropdown" x-cloak @click.away="userDropdown = false"
+                class="absolute bottom-full left-4 mb-2 w-56 bg-white dark:bg-slate-900 border-2 border-black rounded-xl shadow-neobrutal p-2 z-50">
+                <a href="settings.html"
+                    class="flex items-center gap-3 px-3 py-2 hover:bg-primary rounded-lg transition-colors font-bold text-sm">
+                    <span class="material-icons-outlined text-sm">person</span> Profile
+                </a>
+                <button @click="addNotification('Security log exported'); userDropdown = false"
+                    class="w-full flex items-center gap-3 px-3 py-2 hover:bg-primary rounded-lg transition-colors font-bold text-sm">
+                    <span class="material-icons-outlined text-sm">history</span> Security Log
+                </button>
+                <div class="h-px bg-black my-1"></div>
+                <button @click="addNotification('Signing out...'); setTimeout(() => location.reload(), 1000)"
+                    class="w-full flex items-center gap-3 px-3 py-2 hover:bg-red-500 hover:text-white rounded-lg transition-colors font-bold text-sm">
+                    <span class="material-icons-outlined text-sm">logout</span> Logout
+                </button>
+            </div>
+        </div>
+    </aside>
+    <!-- Main Content -->
+    <main class="flex-1 h-full overflow-y-auto relative">
+        <div class="p-8 max-w-[1600px] mx-auto pb-32">
+            <!-- Header -->
+            <header class="mb-8">
+                <h1 class="text-3xl font-bold mb-1 italic">Settings & Identity</h1>
+                <p class="text-slate-500 dark:text-slate-400 text-sm">Configure your company profile, API connections,
+                    and automation parameters.</p>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- Navigation Tabs (Inline) -->
+                <div class="lg:col-span-3 space-y-2">
+                    <button @click="activeTab = 'company'"
+                        :class="activeTab === 'company' ? 'bg-white border-black shadow-neobrutal-sm' : 'border-transparent'"
+                        class="w-full text-left px-4 py-3 dark:bg-slate-900 border rounded-lg font-bold flex items-center gap-3 transition-all">
+                        <span class="material-icons-outlined"
+                            :class="activeTab === 'company' ? 'text-primary' : 'text-slate-400'">business</span>
+                        Company Profile
+                    </button>
+                    <button @click="activeTab = 'integrations'"
+                        :class="activeTab === 'integrations' ? 'bg-white border-black shadow-neobrutal-sm' : 'border-transparent'"
+                        class="w-full text-left px-4 py-3 dark:bg-slate-900 border rounded-lg font-bold flex items-center gap-3 transition-all">
+                        <span class="material-icons-outlined"
+                            :class="activeTab === 'integrations' ? 'text-primary' : 'text-slate-400'">api</span>
+                        Integrations
+                    </button>
+                    <button @click="activeTab = 'preferences'"
+                        :class="activeTab === 'preferences' ? 'bg-white border-black shadow-neobrutal-sm' : 'border-transparent'"
+                        class="w-full text-left px-4 py-3 dark:bg-slate-900 border rounded-lg font-bold flex items-center gap-3 transition-all">
+                        <span class="material-icons-outlined"
+                            :class="activeTab === 'preferences' ? 'text-primary' : 'text-slate-400'">notifications</span>
+                        Preferences
+                    </button>
+                    <button @click="activeTab = 'billing'"
+                        :class="activeTab === 'billing' ? 'bg-white border-black shadow-neobrutal-sm' : 'border-transparent'"
+                        class="w-full text-left px-4 py-3 dark:bg-slate-900 border rounded-lg font-bold flex items-center gap-3 transition-all">
+                        <span class="material-icons-outlined"
+                            :class="activeTab === 'billing' ? 'text-primary' : 'text-slate-400'">credit_card</span>
+                        Billing
+                    </button>
+
+                    <div class="mt-8 p-4 bg-lemon-green/10 border border-black border-dashed rounded-xl">
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">Current Plan</p>
+                        <h4 class="font-bold text-lg mb-1">REAVO Pro</h4>
+                        <p class="text-xs text-slate-500 mb-4">60/100 Seats used</p>
+                        <button @click="addNotification('Opening portal...')"
+                            class="w-full py-2 bg-black text-white text-xs font-bold rounded shadow-neobrutal-sm active:shadow-none transition-all">UPGRADE</button>
+                    </div>
+                </div>
+
+                <!-- Settings Content -->
+                <div class="lg:col-span-9 space-y-8">
+                    <!-- Company Info Section -->
+                    <section x-show="activeTab === 'company'" x-transition
+                        class="bg-white dark:bg-slate-900 border border-black rounded-xl shadow-neobrutal p-6">
+                        <h2 class="text-xl font-bold mb-6 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="material-icons-outlined text-primary">verified_user</span>
+                                KYB/Identity Details
+                            </div>
+                            <button @click="addNotification('Saving changes...', 'success')"
+                                class="text-xs bg-primary px-3 py-1 border border-black rounded shadow-neobrutal-sm font-bold">SAVE</button>
+                        </h2>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold uppercase text-slate-500">Legal Company Name</label>
+                                <input type="text" value="Stitch Technologies Ltd"
+                                    class="w-full px-4 py-2 border border-black rounded-lg bg-background-light dark:bg-black/20 focus:ring-0 focus:border-primary font-medium" />
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold uppercase text-slate-500">RC Number</label>
+                                <input type="text" value="RC-1928374"
+                                    class="w-full px-4 py-2 border border-black rounded-lg bg-background-light dark:bg-black/20 focus:ring-0 focus:border-primary font-medium font-mono" />
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold uppercase text-slate-500">Tax ID (TIN)</label>
+                                <div class="relative">
+                                    <input type="text" value="29019283-001"
+                                        class="w-full px-4 py-2 border border-black rounded-lg bg-background-light dark:bg-black/20 focus:ring-0 focus:border-primary font-medium font-mono" />
+                                    <span
+                                        class="absolute right-3 top-2.5 text-lemon-green material-icons-outlined text-sm">check_circle</span>
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold uppercase text-slate-500">Industry</label>
+                                <select
+                                    class="w-full px-4 py-2 border border-black rounded-lg bg-background-light dark:bg-black/20 focus:ring-0 focus:border-primary font-medium">
+                                    <option>Fintech/Software</option>
+                                    <option>E-commerce</option>
+                                    <option>Logistics</option>
+                                </select>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- API & Integrations -->
+                    <section x-show="activeTab === 'integrations'" x-transition
+                        class="bg-white dark:bg-slate-900 border border-black rounded-xl shadow-neobrutal p-6">
+                        <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+                            <span class="material-icons-outlined text-primary">hub</span>
+                            Financial & Cloud Rails
+                        </h2>
+
+                        <div class="space-y-6">
+                            <!-- Maplerad -->
+                            <div
+                                class="p-4 border border-black rounded-xl flex items-center justify-between group hover:bg-slate-50 transition-colors">
+                                <div class="flex items-center gap-4">
+                                    <div
+                                        class="w-12 h-12 bg-black text-white rounded-lg flex items-center justify-center font-bold text-xl">
+                                        M</div>
+                                    <div>
+                                        <h3 class="font-bold">Maplerad Payments</h3>
+                                        <p class="text-xs text-slate-500 font-mono">sk_live_••••••••••••421</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button @click="addNotification('Rotating Maplerad keys...')"
+                                        class="px-3 py-1 border border-black text-xs font-bold rounded shadow-neobrutal-sm hover:bg-primary transition-all">ROTATE</button>
+                                    <span
+                                        class="w-3 h-3 bg-lemon-green rounded-full border border-black animate-pulse self-center"></span>
+                                </div>
+                            </div>
+
+                            <!-- Remita -->
+                            <div
+                                class="p-4 border border-black rounded-xl flex items-center justify-between group hover:bg-slate-50 transition-colors">
+                                <div class="flex items-center gap-4">
+                                    <div
+                                        class="w-12 h-12 bg-primary text-black rounded-lg flex items-center justify-center">
+                                        <span class="material-icons-outlined">payments</span>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold">Remita Tax Engine</h3>
+                                        <p class="text-xs text-slate-500">2026 Calculation Engine Active</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-2 relative">
+                                    <div x-show="remitaTesting"
+                                        class="absolute -left-12 top-1 text-[10px] font-black italic text-lemon-green">
+                                        SUCCESS</div>
+                                    <button @click="remitaTesting = true; setTimeout(() => remitaTesting = false, 2000)"
+                                        class="px-3 py-1 border border-black text-xs font-bold rounded shadow-neobrutal-sm hover:bg-primary transition-all">TEST
+                                        API</button>
+                                    <span
+                                        class="w-3 h-3 bg-lemon-green rounded-full border border-black self-center"></span>
+                                </div>
+                            </div>
+
+                            <!-- Google Drive -->
+                            <!-- Google Drive -->
+                            <div
+                                class="p-4 border border-black rounded-xl flex items-center justify-between group hover:bg-slate-50 transition-colors">
+                                <div class="flex items-center gap-4">
+                                    <div
+                                        class="w-12 h-12 bg-white border border-black rounded-lg flex items-center justify-center">
+                                        <img src="https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg"
+                                            class="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold">Google Drive Vault Sync</h3>
+                                        <p class="text-xs text-slate-500">Folder: /REAVO_RECORDS</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button @click="addNotification('Disconnected Google Drive.')"
+                                        class="px-3 py-1 border border-black text-xs font-bold rounded shadow-neobrutal-sm hover:bg-red-500 hover:text-white transition-all uppercase">Disconnect</button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Placeholder sections for other tabs -->
+                    <section x-show="activeTab === 'preferences'" x-transition
+                        class="bg-white dark:bg-slate-900 border border-black rounded-xl shadow-neobrutal p-6 text-center py-12">
+                        <span class="material-icons-outlined text-6xl text-slate-200 mb-4">notifications_active</span>
+                        <h3 class="font-bold text-xl mb-2">Notification Preferences</h3>
+                        <p class="text-sm text-slate-500 max-w-sm mx-auto">Configure where and when REAVO sends you
+                            alerts regarding payroll, taxes, and security events.</p>
+                    </section>
+
+                    <section x-show="activeTab === 'billing'" x-transition
+                        class="bg-white dark:bg-slate-900 border border-black rounded-xl shadow-neobrutal p-6 text-center py-12">
+                        <span class="material-icons-outlined text-6xl text-slate-200 mb-4">receipt_long</span>
+                        <h3 class="font-bold text-xl mb-2">Billing History</h3>
+                        <p class="text-sm text-slate-500 max-w-sm mx-auto">Access your corporate invoices and manage
+                            your seat subscriptions.</p>
+                    </section>
+
+                    <!-- Danger Zone -->
+                    <section class="border-2 border-dashed border-red-500 rounded-xl p-6 bg-red-50 dark:bg-red-950/20">
+                        <h2 class="text-lg font-bold text-red-600 mb-4 uppercase tracking-widest italic">Danger Zone
+                        </h2>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="font-bold">Delete Company Account</p>
+                                <p class="text-xs text-slate-500">This will permanently wipe all staff records, UPIDs,
+                                    and tax history.</p>
+                            </div>
+                            <button @click="showModal = 'delete-account'"
+                                class="px-6 py-2 border-2 border-red-600 bg-white text-red-600 font-bold rounded-lg shadow-[4px_4px_0px_0px_theme(colors.red.600)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all">DELETE</button>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- The AURACLE (AI Assistant) -->
+        <div x-data="{ scheduled: false }"
+            class="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-none">
+            <!-- Chat bubble -->
+            <div
+                class="mb-4 bg-white dark:bg-slate-900 border border-black rounded-xl rounded-tr-sm shadow-[8px_8px_0px_0px_rgba(183,141,247,1)] p-4 max-w-sm pointer-events-auto transform transition-all hover:scale-105 origin-bottom-right">
+                <div class="flex items-start gap-3">
+                    <div
+                        class="w-8 h-8 rounded bg-black text-primary flex items-center justify-center font-bold text-xs shrink-0">
+                        AI
+                    </div>
+                    <div>
+                        <p x-show="!scheduled" class="text-sm font-medium leading-snug">I recommend rotating your
+                            Maplerad API key every 90 days. Would you like me to schedule a reminder?</p>
+                        <p x-show="scheduled" class="text-sm font-black italic text-primary leading-snug">Scheduled!
+                            I'll remind you in 90 days to rotate your keys.</p>
+
+                        <div x-show="!scheduled" class="mt-2 flex gap-2">
+                            <button @click="scheduled = true; addNotification('Reminder scheduled!', 'success')"
+                                class="text-xs font-bold border border-black px-2 py-1 rounded hover:bg-primary hover:text-white transition-colors">Yes,
+                                schedule</button>
+                            <button @click="addNotification('Reminder dismissed')"
+                                class="text-xs text-slate-500 hover:text-black transition-colors px-1 py-1">Dismiss</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Input Bar -->
+            <div
+                class="w-96 bg-white/90 backdrop-blur-md dark:bg-slate-900/90 border border-black rounded-full shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center p-1 pl-4 gap-2 pointer-events-auto">
+                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <input @keyup.enter="addNotification('Applying preference change...')"
+                    class="bg-transparent border-none focus:ring-0 text-sm w-full font-medium placeholder:text-slate-400"
+                    placeholder="Search settings..." type="text" />
+                <button @click="addNotification('Applying preference change...')"
+                    class="w-8 h-8 bg-black rounded-full flex items-center justify-center text-primary hover:text-white transition-colors">
+                    <span class="material-icons-outlined text-[18px]">arrow_upward</span>
+                </button>
+            </div>
+            <div class="mt-1 mr-4 text-[10px] font-bold tracking-widest text-slate-400 uppercase">The AURACLE v2.0</div>
+        </div>
+    </main>
+</body>
+
+</html>

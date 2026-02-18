@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>REAVO - Wallet</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;family=Material+Icons+Outlined&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#b78df7",
+                        "background-light": "#f7f6f8",
+                        "background-dark": "#171022",
+                        "lemon-green": "#b0f78d",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+                    boxShadow: {
+                        'neobrutal': '4px 4px 0px 0px rgba(0,0,0,1)',
+                        'neobrutal-sm': '2px 2px 0px 0px rgba(0,0,0,1)',
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Glassmorphism utility */
+        .glass-sidebar {
+            background: rgba(247, 246, 248, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .dark .glass-sidebar {
+            background: rgba(23, 16, 34, 0.65);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Neo-brutalist active state for buttons */
+        .btn-press:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 1);
+        }
+
+        .btn-press-primary:active {
+            transform: translate(4px, 4px);
+            box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 1);
+        }
+
+        [x-cloak] {
+            display: none !important;
+        }
+
+        @keyframes toast-in {
+            from {
+                transform: translateY(100%) scale(0.9);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .animate-toast {
+            animation: toast-in 0.3s ease-out forwards;
+        }
+
+        .card-gradient {
+            background: linear-gradient(135deg, #b78df7 0%, #d4bfff 100%);
+        }
+    </style>
+</head>
+
+<body x-data="{ 
+        notifications: [],
+        showModal: null,
+        userDropdown: false,
+        processing: false,
+        addNotification(msg, type = 'success') {
+            const id = Date.now();
+            this.notifications.push({ id, msg, type });
+            setTimeout(() => this.notifications = this.notifications.filter(n => n.id !== id), 3000);
+        }
+    }"
+    class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white h-screen overflow-hidden flex selection:bg-primary selection:text-white">
+
+    <!-- Notification System -->
+    <div class="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] space-y-2 pointer-events-none">
+        <template x-for="n in notifications" :key="n.id">
+            <div class="animate-toast pointer-events-auto px-6 py-3 border border-black rounded-lg shadow-neobrutal flex items-center gap-3 min-w-[300px]"
+                :class="n.type === 'success' ? 'bg-lemon-green text-black' : 'bg-primary text-black'">
+                <span class="material-icons-outlined" x-text="n.type === 'success' ? 'check_circle' : 'info'"></span>
+                <span class="font-bold text-sm tracking-tight" x-text="n.msg"></span>
+            </div>
+        </template>
+    </div>
+
+    <!-- Global Modal Overlay -->
+    <div x-show="showModal" x-cloak x-transition.opacity
+        class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+        <div x-show="showModal" x-transition.scale.origin.center @click.away="showModal = null"
+            class="bg-white dark:bg-slate-900 border-2 border-black rounded-2xl shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] max-w-lg w-full p-8 relative">
+
+            <button @click="showModal = null" class="absolute top-4 right-4 hover:rotate-90 transition-transform">
+                <span class="material-icons-outlined font-bold">close</span>
+            </button>
+
+            <!-- Modal Content: Fund Wallet -->
+            <div x-show="showModal === 'fund-wallet'">
+                <h2 class="text-2xl font-black uppercase italic mb-2 tracking-tighter">Fund Wallet</h2>
+                <p class="text-slate-500 text-sm mb-6 font-medium">Add liquidity to your Maplerad corporate balance.</p>
+                <div class="space-y-4">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black uppercase text-slate-400">Select Funding Method</label>
+                        <select class="w-full border-2 border-black rounded-lg bg-slate-50 py-2 focus:ring-0">
+                            <option>Bank Transfer (Instant)</option>
+                            <option>Corporate Card</option>
+                            <option>Internal Sweep</option>
+                        </select>
+                    </div>
+                    <div class="relative mb-4">
+                        <span class="material-icons-outlined absolute left-3 top-2.5 text-slate-400">search</span>
+                        <input @keyup.enter="addNotification('Searching transaction history...')" type="text"
+                            placeholder="Search hash, UPID, or date..."
+                            class="w-full pl-10 pr-4 py-2 border border-black rounded-lg focus:ring-0 focus:border-primary bg-background-light dark:bg-black/20 font-medium text-sm italic" />
+                    </div>
+                    <button
+                        @click="processing = true; setTimeout(() => { processing = false; showModal = null; addNotification('Wallet funding successful!', 'success') }, 2000)"
+                        class="w-full py-4 bg-primary border-2 border-black rounded-xl font-black uppercase shadow-neobrutal-sm flex items-center justify-center gap-3">
+                        <span x-show="processing"
+                            class="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
+                        <span x-show="!processing">Generate Payment Reference</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal Content: Audit Ledger -->
+            <div x-show="showModal === 'audit-ledger'">
+                <h2 class="text-2xl font-black uppercase italic mb-2 tracking-tighter">On-Ledger Audit</h2>
+                <div class="space-y-4 py-4">
+                    <div class="flex items-center gap-3 p-3 border border-black rounded-lg bg-slate-50">
+                        <span class="material-icons-outlined text-primary">security</span>
+                        <div class="text-xs font-bold uppercase">Verifying 1,204 blocks...</div>
+                    </div>
+                    <p class="text-[10px] text-slate-500 font-medium">This cross-references Maplerad event hooks with
+                        local treasury records to ensure zero variance.</p>
+                    <div
+                        class="w-full bg-slate-200 h-10 border border-black rounded-lg flex items-center px-4 overflow-hidden relative">
+                        <div class="absolute inset-0 bg-primary opacity-20 w-1/2 animate-shimmer"></div>
+                        <span class="relative text-[10px] font-mono font-bold">SCANNING: tx_90124_approved</span>
+                    </div>
+                    <button @click="addNotification('Audit complete. Status: IMMUTABLE', 'success'); showModal = null"
+                        class="w-full py-3 bg-black text-white border-2 border-black rounded-lg font-black shadow-neobrutal-sm">PROCEED</button>
+                </div>
+            </div>
+
+            <!-- Modal Content: Sweep to Bank -->
+            <div x-show="showModal === 'sweep-bank'">
+                <h2 class="text-2xl font-black uppercase italic mb-2 tracking-tighter">Sweep to Bank</h2>
+                <p class="text-slate-500 text-sm mb-6 font-medium">Move your corporate credit to your primary settlement
+                    account.</p>
+                <div class="space-y-4">
+                    <div class="p-4 border-2 border-primary bg-primary/5 rounded-xl">
+                        <div class="flex justify-between text-xs font-black uppercase mb-2">
+                            <span>Settlement Destination</span>
+                            <span class="text-primary underline">Change</span>
+                        </div>
+                        <p class="text-sm font-bold">Standard Chartered Bank •••• 9021</p>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black uppercase text-slate-400">Amount (₦)</label>
+                        <input type="number" value="12400000"
+                            class="w-full border-black border-2 rounded-lg py-2 focus:ring-0 font-bold">
+                    </div>
+                    <button @click="addNotification('Sweep initiated. ETA: < 5 mins', 'success'); showModal = null"
+                        class="w-full py-4 bg-primary border-2 border-black rounded-xl font-black uppercase shadow-neobrutal-sm">Authorize
+                        Movement</button>
+                </div>
+            </div>
+
+            <!-- Modal Content: Convert -->
+            <div x-show="showModal === 'convert'">
+                <h2 class="text-2xl font-black uppercase italic mb-2 tracking-tighter tracking-tighter">Convert Funds
+                </h2>
+                <div class="bg-black text-white p-4 rounded-xl border-2 border-primary mb-6">
+                    <p class="text-[10px] font-bold text-primary mb-1 uppercase tracking-widest leading-none">Market
+                        Rate</p>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-bold">1 USD</span>
+                        <span class="material-icons-outlined text-sm">swap_horiz</span>
+                        <span class="text-sm font-bold">1,410.50 NGN</span>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-slate-400">Source</label>
+                            <input type="text" value="USD Balance" readonly
+                                class="w-full border-black border-2 rounded-lg py-2 bg-slate-100 italic">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-slate-400">Target</label>
+                            <input type="text" value="NGN Balance" readonly
+                                class="w-full border-black border-2 rounded-lg py-2 bg-slate-100 italic">
+                        </div>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black uppercase text-slate-400">Amount to sell ($)</label>
+                        <input type="number" placeholder="1000.00"
+                            class="w-full border-black border-2 rounded-lg py-2 focus:ring-0 font-bold">
+                    </div>
+                    <button
+                        @click="addNotification('Conversion complete! ₦1,410,500 added to NGN balance.', 'success'); showModal = null"
+                        class="w-full py-4 bg-lemon-green border-2 border-black rounded-xl font-black uppercase shadow-neobrutal-sm">
+                        Finalize Conversion
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Sidebar -->
+    <aside
+        class="w-20 lg:w-64 h-full glass-sidebar flex flex-col justify-between shrink-0 z-20 relative transition-all duration-300">
+        <div>
+            <!-- MacOS Window Controls simulation -->
+            <div class="h-14 flex items-center px-6 gap-2">
+                <div class="w-3 h-3 rounded-full bg-red-500 border border-red-600/20"></div>
+                <div class="w-3 h-3 rounded-full bg-yellow-500 border border-yellow-600/20"></div>
+                <div class="w-3 h-3 rounded-full bg-green-500 border border-green-600/20"></div>
+            </div>
+            <!-- Logo -->
+            <div class="px-6 py-4 flex items-center gap-3">
+                <div
+                    class="w-8 h-8 bg-black dark:bg-white rounded-lg flex items-center justify-center shadow-neobrutal-sm">
+                    <span class="text-white dark:text-black font-bold text-lg">R</span>
+                </div>
+                <span class="hidden lg:block font-bold text-xl tracking-tight">REAVO</span>
+            </div>
+            <!-- Navigation -->
+            <nav class="mt-8 px-4 space-y-2">
+                <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-black dark:text-slate-400 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors group"
+                    href="app.html">
+                    <span
+                        class="material-icons-outlined text-[20px] group-hover:scale-110 transition-transform">dashboard</span>
+                    <span class="hidden lg:block">Command Center</span>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-black dark:text-slate-400 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors group"
+                    href="registry.html">
+                    <span
+                        class="material-icons-outlined text-[20px] group-hover:scale-110 transition-transform">people_alt</span>
+                    <span class="hidden lg:block">The Registry</span>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-black dark:text-slate-400 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors group"
+                    href="vault.html">
+                    <span
+                        class="material-icons-outlined text-[20px] group-hover:scale-110 transition-transform">lock</span>
+                    <span class="hidden lg:block">The Vault</span>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 bg-primary border border-black shadow-neobrutal rounded-lg text-black font-medium transition-transform active:translate-y-0.5 active:translate-x-0.5 active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] group"
+                    href="wallet.html">
+                    <span class="material-icons-outlined text-[20px]">account_balance_wallet</span>
+                    <span class="hidden lg:block">Wallet</span>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-black dark:text-slate-400 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors group"
+                    href="reports.html">
+                    <span
+                        class="material-icons-outlined text-[20px] group-hover:scale-110 transition-transform">analytics</span>
+                    <span class="hidden lg:block">Reports</span>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-black dark:text-slate-400 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors group"
+                    href="settings.html">
+                    <span
+                        class="material-icons-outlined text-[20px] group-hover:scale-110 transition-transform">settings</span>
+                    <span class="hidden lg:block">Settings</span>
+                </a>
+            </nav>
+        </div>
+        <!-- User Profile -->
+        <div class="p-4 mb-2 relative">
+            <div @click="userDropdown = !userDropdown"
+                class="flex items-center gap-3 p-3 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-black dark:hover:border-white transition-colors cursor-pointer bg-white/50 dark:bg-black/20">
+                <img alt="User avatar" class="w-9 h-9 rounded-full border border-black object-cover"
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnlB5GipKRT69flPM9JEdpznVNZ3IN75njNjaR23bz1VKUTup1iDeZdCx77Z0f2urlnDDYzK_zV4eDbl0oDu1DV0rHiVazDAhc6SRTpnMJd5H3yFnR5qFpyCk4fFxArr4rIRcT25fVQSA5V-3r1OGC7RZ2TmDe3qGVtrAdzks4EPeJCjdhq68ek0bMXkQhhBJEjnvQ_O9FQmW1DD5fzrZ4UNFgD5-J3ph6T0MDJEfLkgfy8vdi796neNFMLPsfvruE8dPbzd8RIdj" />
+                <div class="hidden lg:block overflow-hidden">
+                    <p class="text-sm font-semibold truncate">Alex Chen</p>
+                    <p class="text-xs text-slate-500 truncate">Controller</p>
+                </div>
+            </div>
+
+            <!-- User Dropdown Menu -->
+            <div x-show="userDropdown" x-cloak @click.away="userDropdown = false"
+                class="absolute bottom-full left-4 mb-2 w-56 bg-white dark:bg-slate-900 border-2 border-black rounded-xl shadow-neobrutal p-2 z-50">
+                <a href="settings.html"
+                    class="flex items-center gap-3 px-3 py-2 hover:bg-primary rounded-lg transition-colors font-bold text-sm">
+                    <span class="material-icons-outlined text-sm">person</span> Profile
+                </a>
+                <button @click="addNotification('Security log exported'); userDropdown = false"
+                    class="w-full flex items-center gap-3 px-3 py-2 hover:bg-primary rounded-lg transition-colors font-bold text-sm">
+                    <span class="material-icons-outlined text-sm">history</span> Security Log
+                </button>
+                <div class="h-px bg-black my-1"></div>
+                <button @click="addNotification('Signing out...'); setTimeout(() => location.reload(), 1000)"
+                    class="w-full flex items-center gap-3 px-3 py-2 hover:bg-red-500 hover:text-white rounded-lg transition-colors font-bold text-sm">
+                    <span class="material-icons-outlined text-sm">logout</span> Logout
+                </button>
+            </div>
+        </div>
+    </aside>
+    <!-- Main Content -->
+    <main class="flex-1 h-full overflow-y-auto relative">
+        <div class="p-8 max-w-[1600px] mx-auto pb-32">
+            <!-- Header -->
+            <header class="flex justify-between items-end mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold mb-1">Wallet</h1>
+                    <p class="text-slate-500 dark:text-slate-400 text-sm">Manage your Maplerad balances, fund
+                        disbursements, and track tax settlements.</p>
+                </div>
+                <div class="hidden md:flex gap-3">
+                    <button @click="showModal = 'audit-ledger'"
+                        class="px-4 py-2 border border-black bg-white dark:bg-slate-800 rounded-lg shadow-neobrutal-sm hover:shadow-neobrutal transition-all active:shadow-none active:translate-x-[2px] active:translate-y-[2px] flex items-center gap-2 text-sm font-medium">
+                        <span class="material-icons-outlined text-sm">history_edu</span>
+                        Audit Ledger
+                    </button>
+                    <button @click="showModal = 'fund-wallet'"
+                        class="px-4 py-2 border border-black bg-black text-white dark:bg-white dark:text-black rounded-lg shadow-neobrutal-sm hover:shadow-neobrutal transition-all active:shadow-none active:translate-x-[2px] active:translate-y-[2px] flex items-center gap-2 text-sm font-medium">
+                        <span class="material-icons-outlined text-sm">add_card</span>
+                        Fund Wallet
+                    </button>
+                </div>
+            </header>
+
+            <!-- Main Wallet & Sub-Wallets -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                <!-- Main Liquidity -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Global Balance -->
+                    <div
+                        class="bg-white dark:bg-slate-900 border-2 border-black rounded-2xl shadow-neobrutal p-8 relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                            <span class="material-icons-outlined text-[12rem]">account_balance_wallet</span>
+                        </div>
+                        <div
+                            class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+                            <div>
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="text-xs font-bold uppercase tracking-widest text-slate-400">Total
+                                        Liquidity</span>
+                                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                                </div>
+                                <h2 class="text-6xl font-black tracking-tighter mb-2">₦2,450,000.00</h2>
+                                <p class="text-xs font-mono text-slate-500">Maplerad Corp ID: <span
+                                        class="text-black font-bold">MPL-8821-X</span></p>
+                            </div>
+                            <div class="flex gap-3">
+                                <button @click="showModal = 'fund-wallet'"
+                                    class="px-6 py-3 bg-black text-white hover:bg-gray-800 rounded-lg font-bold uppercase text-sm shadow-neobrutal-sm transition-all md:w-auto w-full">
+                                    Top Up
+                                </button>
+                                <button
+                                    class="px-6 py-3 border-2 border-black hover:bg-slate-50 rounded-lg font-bold uppercase text-sm transition-all md:w-auto w-full">
+                                    Statement
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sub-Wallets (The Reservoirs) -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Tax Reserve -->
+                        <div
+                            class="bg-lemon-green/20 border-2 border-lemon-green rounded-xl p-4 flex flex-col justify-between h-32 relative overflow-hidden">
+                            <div class="absolute -right-4 -top-4 text-lemon-green opacity-50">
+                                <span class="material-icons-outlined text-8xl">verified</span>
+                            </div>
+                            <div class="relative z-10">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="material-icons-outlined text-sm font-bold">lock</span>
+                                    <span class="text-[10px] font-black uppercase tracking-wider">Tax Reserve</span>
+                                </div>
+                                <h3 class="text-2xl font-black">₦450,000</h3>
+                            </div>
+                            <div class="w-full bg-white/50 h-1.5 rounded-full overflow-hidden mt-2">
+                                <div class="bg-black h-full w-[85%]"></div>
+                            </div>
+                        </div>
+
+                        <!-- Payroll Bucket -->
+                        <div
+                            class="bg-white dark:bg-slate-800 border-2 border-black rounded-xl p-4 flex flex-col justify-between h-32">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="material-icons-outlined text-sm font-bold text-primary">groups</span>
+                                <span class="text-[10px] font-black uppercase tracking-wider text-slate-500">Payroll
+                                    Bucket</span>
+                            </div>
+                            <h3 class="text-2xl font-black">₦1,200,000</h3>
+                            <p class="text-[10px] text-slate-500 font-bold">Allocated for Month End</p>
+                        </div>
+
+                        <!-- Ops/General -->
+                        <div
+                            class="bg-white dark:bg-slate-800 border-2 border-black rounded-xl p-4 flex flex-col justify-between h-32">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="material-icons-outlined text-sm font-bold text-orange-500">bolt</span>
+                                <span
+                                    class="text-[10px] font-black uppercase tracking-wider text-slate-500">Operational</span>
+                            </div>
+                            <h3 class="text-2xl font-black">₦800,000</h3>
+                            <button class="text-[10px] text-left font-bold underline decoration-dotted">Move
+                                Funds</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Currency Stats / Exchange rate -->
+                <div
+                    class="bg-primary border border-black rounded-2xl shadow-neobrutal p-6 flex flex-col justify-between text-black">
+                    <div>
+                        <h3 class="font-bold text-xl mb-4 italic uppercase">Settlement Rates</h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center border-b border-black/10 pb-2">
+                                <span class="font-medium">USD/NGN</span>
+                                <span class="font-bold">₦1,150.00</span>
+                            </div>
+                            <div class="flex justify-between items-center border-b border-black/10 pb-2">
+                                <span class="font-medium">GBP/NGN</span>
+                                <span class="font-bold">₦1,420.00</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button @click="showModal = 'convert'"
+                        class="w-full mt-6 py-3 bg-black text-white font-bold rounded-lg hover:shadow-neobrutal-sm hover:-translate-y-1 transition-all">
+                        CONVERT FUNDS
+                    </button>
+                </div>
+            </div>
+
+            <!-- Transaction Logs -->
+            <div class="bg-white dark:bg-slate-900 border border-black rounded-xl shadow-neobrutal overflow-hidden">
+                <div class="p-6 border-b border-black flex justify-between items-center bg-slate-50 dark:bg-slate-800">
+                    <h2 class="text-xl font-bold uppercase tracking-widest italic">Transaction Logs</h2>
+                    <div class="flex gap-4">
+                        <select class="text-xs font-bold bg-white border border-black rounded px-2 py-1 focus:ring-0">
+                            <option>All Transactions</option>
+                            <option>Payroll</option>
+                            <option>Tax Remittance</option>
+                            <option>Inflow</option>
+                        </select>
+                        <button class="text-slate-400 hover:text-black"><span
+                                class="material-icons-outlined">filter_list</span></button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr
+                                class="text-[10px] font-bold uppercase text-slate-400 border-b border-black/5 bg-slate-50 dark:bg-slate-800/50">
+                                <th class="px-6 py-4">Transaction Details</th>
+                                <th class="px-6 py-4">Category</th>
+                                <th class="px-6 py-4">Date</th>
+                                <th class="px-6 py-4">Amount</th>
+                                <th class="px-6 py-4 text-right">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-black/5">
+                            <tr class="hover:bg-lemon-green/5 transition-colors group">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div
+                                            class="w-10 h-10 bg-black text-primary rounded-lg flex items-center justify-center font-bold">
+                                            R</div>
+                                        <div>
+                                            <p class="font-bold">Remita PAYE Settlement</p>
+                                            <p class="text-xs text-slate-500">Ref: RRR-9012-X422</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span
+                                        class="px-2 py-1 bg-purple-100 text-purple-700 text-[10px] font-bold rounded border border-purple-200 uppercase">Tax</span>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-slate-500">Oct 24, 2023 • 10:15 AM</td>
+                                <td class="px-6 py-4 font-bold text-red-600">-₦320,000.00</td>
+                                <td class="px-6 py-4 text-right">
+                                    <div
+                                        class="inline-flex items-center gap-1.5 px-2 py-1 bg-lemon-green rounded border border-black shadow-neobrutal-sm text-[10px] font-bold uppercase">
+                                        <span class="material-icons-outlined text-[14px]">check</span> Successful
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-lemon-green/5 transition-colors group">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div
+                                            class="w-10 h-10 bg-slate-100 dark:bg-white/10 text-slate-600 rounded-lg flex items-center justify-center">
+                                            <span class="material-icons-outlined">payments</span>
+                                        </div>
+                                        <div>
+                                            <p class="font-bold">Staff Payroll - October B</p>
+                                            <p class="text-xs text-slate-500">42 Recipients</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span
+                                        class="px-2 py-1 bg-blue-100 text-blue-700 text-[10px] font-bold rounded border border-blue-200 uppercase">Payroll</span>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-slate-500">Oct 23, 2023 • 04:30 PM</td>
+                                <td class="px-6 py-4 font-bold text-red-600">-₦1,450,000.00</td>
+                                <td class="px-6 py-4 text-right">
+                                    <div
+                                        class="inline-flex items-center gap-1.5 px-2 py-1 bg-lemon-green rounded border border-black shadow-neobrutal-sm text-[10px] font-bold uppercase">
+                                        <span class="material-icons-outlined text-[14px]">check</span> Successful
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-lemon-green/5 transition-colors group">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div
+                                            class="w-10 h-10 bg-primary text-black rounded-lg flex items-center justify-center font-bold">
+                                            <span class="material-icons-outlined">add</span>
+                                        </div>
+                                        <div>
+                                            <p class="font-bold">Wallet Top-up</p>
+                                            <p class="text-xs text-slate-500">via GTBank Transfer</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span
+                                        class="px-2 py-1 bg-green-100 text-green-700 text-[10px] font-bold rounded border border-green-200 uppercase">Funding</span>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-slate-500">Oct 22, 2023 • 09:12 AM</td>
+                                <td class="px-6 py-4 font-bold text-green-600">+₦2,000,000.00</td>
+                                <td class="px-6 py-4 text-right">
+                                    <div
+                                        class="inline-flex items-center gap-1.5 px-2 py-1 bg-lemon-green rounded border border-black shadow-neobrutal-sm text-[10px] font-bold uppercase">
+                                        <span class="material-icons-outlined text-[14px]">check</span> Successful
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="p-6 bg-slate-50 dark:bg-slate-800 border-t border-black flex justify-center">
+                    <button @click="addNotification('Loading full transaction history archive...')"
+                        class="text-sm font-bold underline decoration-2 decoration-primary underline-offset-4 hover:text-primary transition-colors uppercase">View
+                        Full Transaction History</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- The AURACLE (AI Assistant) -->
+        <div x-data="{ scheduled: false }"
+            class="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-none">
+            <!-- Chat bubble -->
+            <div
+                class="mb-4 bg-white dark:bg-slate-900 border border-black rounded-xl rounded-tr-sm shadow-[8px_8px_0px_0px_rgba(183,141,247,1)] p-4 max-w-sm pointer-events-auto transform transition-all hover:scale-105 origin-bottom-right">
+                <div class="flex items-start gap-3">
+                    <div
+                        class="w-8 h-8 rounded bg-black text-primary flex items-center justify-center font-bold text-xs shrink-0">
+                        AI
+                    </div>
+                    <div>
+                        <p x-show="!scheduled" class="text-sm font-medium leading-snug">Your wallet balance is low for
+                            the upcoming November payroll. Would you like me to generate a funding invoice?</p>
+                        <p x-show="scheduled" class="text-sm font-black italic text-primary leading-snug">Invoice
+                            generated! It's been sent to the accounting department for approval.</p>
+
+                        <div x-show="!scheduled" class="mt-2 flex gap-2">
+                            <button @click="scheduled = true; addNotification('Invoice generated!', 'success')"
+                                class="text-xs font-bold border border-black px-2 py-1 rounded hover:bg-primary hover:text-white transition-colors">Yes,
+                                generate</button>
+                            <button @click="addNotification('Funding reminder dismissed')"
+                                class="text-xs text-slate-500 hover:text-black transition-colors px-1 py-1">Dismiss</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Input Bar -->
+            <div
+                class="w-96 bg-white/90 backdrop-blur-md dark:bg-slate-900/90 border border-black rounded-full shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center p-1 pl-4 gap-2 pointer-events-auto">
+                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <input @keyup.enter="addNotification('The AURACLE is calculating delta...')"
+                    class="bg-transparent border-none focus:ring-0 text-sm w-full font-medium placeholder:text-slate-400"
+                    placeholder="Analyze your balances with AI..." type="text" />
+                <button @click="addNotification('The AURACLE is calculating delta...')"
+                    class="w-8 h-8 bg-black rounded-full flex items-center justify-center text-primary hover:text-white transition-colors">
+                    <span class="material-icons-outlined text-[18px]">arrow_upward</span>
+                </button>
+            </div>
+            <div class="mt-1 mr-4 text-[10px] font-bold tracking-widest text-slate-400 uppercase">The AURACLE v2.0</div>
+        </div>
+    </main>
+</body>
+
+</html>
