@@ -22,6 +22,8 @@
                         "background-light": "#f4f5f8",
                         "background-dark": "#121212",
                         "surface-dark": "#181818",
+                        "lemon-green": "#b0f78d",
+                        "lemon-light": "#e8ffde",
                         "border-dark": "rgba(255, 255, 255, 0.1)"
                     },
                     fontFamily: {
@@ -66,6 +68,7 @@
         body {
             background-color: #f8fafc;
             position: relative;
+            font-family: 'Lexend', sans-serif;
         }
 
         .dark body {
@@ -137,10 +140,6 @@
             box-shadow: none;
         }
 
-        .btn-modern:active {
-            transform: translateY(0);
-        }
-
         .glass-sidebar {
             background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(20px);
@@ -167,22 +166,14 @@
             display: none !important;
         }
 
-        .active-link {
-            background: white;
-            color: #0f172a;
-            border: 1px solid rgba(15, 23, 42, 0.15);
-            box-shadow: 0 10px 15px -3px rgba(183, 141, 247, 0.1);
-        }
+        @keyframes marquee {
+            0% {
+                transform: translateX(100%);
+            }
 
-        .dark .active-link {
-            background: rgba(183, 141, 247, 0.1);
-            color: #b78df7;
-            border-color: rgba(183, 141, 247, 0.2);
-        }
-
-        .active-link .material-icons-outlined {
-            color: #b78df7;
-            text-shadow: 0 0 10px rgba(183, 141, 247, 0.3);
+            100% {
+                transform: translateX(-100%);
+            }
         }
 
         .compliance-stream {
@@ -219,6 +210,7 @@
 </head>
 
 <body x-data="{ 
+        darkMode: false,
         notifications: [],
         showModal: null,
         userDropdown: false,
@@ -227,54 +219,14 @@
         auracleQuery: '',
         auracleResponse: null,
         
-        // Staff Data
         staffList: [
-            { 
-                id: 1, 
-                name: 'Sarah Jenkins', 
-                email: 'sarah.j@company.com', 
-                role: 'Senior Developer', 
-                salary: '₦12,500,000/yr', 
-                upid: 'RV-2026-X99', 
-                status: 'Verified', 
-                avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026024d' 
-            },
-            { 
-                id: 2, 
-                name: 'Michael Okon', 
-                email: 'michael.o@company.com', 
-                role: 'Product Manager', 
-                salary: '₦15,200,000/yr', 
-                upid: 'RV-2026-X42', 
-                status: 'Verified', 
-                avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d' 
-            },
-            { 
-                id: 3, 
-                name: 'Anita Desai', 
-                email: 'anita.d@company.com', 
-                role: 'Pending Allocation', 
-                salary: '-', 
-                upid: 'Generating...', 
-                status: 'Pending', 
-                avatar: null 
-            }
+            { id: 1, name: 'Sarah Jenkins', email: 'sarah.j@company.com', role: 'Senior Developer', salary: '₦12,500,000/yr', upid: 'RV-2026-X99', status: 'Verified', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026024d', tin: '12345678-0001', basic: 500000, housing: 200000, transport: 100000, rent: 50000 },
+            { id: 2, name: 'Michael Okon', email: 'michael.o@company.com', role: 'Product Manager', salary: '₦15,200,000/yr', upid: 'RV-2026-X42', status: 'Verified', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d', tin: '12345678-0002', basic: 600000, housing: 250000, transport: 120000, rent: 60000 },
+            { id: 3, name: 'Anita Desai', email: 'anita.d@company.com', role: 'HR Director', salary: '₦18,000,000/yr', upid: 'RV-2026-X12', status: 'Verified', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026701d', tin: '12345678-0003', basic: 700000, housing: 300000, transport: 150000, rent: 75000 },
+            { id: 4, name: 'John Peterson', email: 'j.peterson@company.com', role: 'Compliance Officer', salary: '₦9,800,000/yr', upid: 'PENDING', status: 'Pending', avatar: null, tin: '12345678-0004', basic: 400000, housing: 150000, transport: 80000, rent: 40000 }
         ],
 
-        // New Staff Form Data
-        newStaff: {
-            firstName: '',
-            lastName: '',
-            email: '',
-            phone: '',
-            bankName: '',
-            accountNumber: '',
-            tin: '',
-            salary: 0,
-            rent: 0,
-            transport: 0,
-            consent: false
-        },
+        newStaff: { firstName: '', lastName: '', email: '', phone: '', bankName: '', accountNumber: '', tin: '', salary: '', basic: '', housing: '', transport: '', rent: '', consent: false },
 
         addNotification(msg, type = 'success') {
             const id = Date.now();
@@ -316,10 +268,11 @@
                     avatar: null
                 });
                 this.addNotification('Staff Verified! UPID Generated & Payroll Computed.', 'success');
-                this.newStaff = { firstName: '', lastName: '', email: '', phone: '', bankName: '', accountNumber: '', tin: '', salary: 0, rent: 0, transport: 0, consent: false };
+                this.newStaff = { firstName: '', lastName: '', email: '', phone: '', bankName: '', accountNumber: '', tin: '', salary: '', basic: '', housing: '', transport: '', rent: '', consent: false };
             }, 2000);
         }
-    }"
+    }" 
+    x-init="setTimeout(() => addNotification('Registry Node Synchronized', 'info'), 1000)"
     class="bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-zinc-100 h-screen overflow-hidden flex selection:bg-primary selection:text-white">
 
     <div class="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] space-y-3 pointer-events-none">
@@ -342,7 +295,7 @@
             class="glass-panel rounded-[2.5rem] shadow-float dark:shadow-none max-w-lg w-full p-8 relative max-h-[90vh] overflow-y-auto custom-scrollbar">
 
             <button @click="showModal = null"
-                class="absolute top-6 right-6 w-10 h-10 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-full flex items-center justify-center text-slate-400 dark:text-zinc-500 transition-colors">
+                class="absolute top-6 right-6 w-10 h-10 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-full flex items-center justify-center text-zinc-400 dark:text-zinc-500 transition-colors">
                 <span class="material-icons-outlined text-sm font-bold">close</span>
             </button>
 
@@ -355,7 +308,7 @@
                     </div>
                     <div>
                         <h2 class="text-xl font-bold tracking-tight dark:text-white">Onboard Staff</h2>
-                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">NRS/Remita Engine Sync
+                        <p class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">NRS/Remita Engine Sync
                         </p>
                     </div>
                 </div>
@@ -364,38 +317,39 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-1.5">
                             <label
-                                class="text-[10px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-widest ml-1">First
+                                class="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest ml-1">First
                                 Name</label>
                             <input x-model="newStaff.firstName" type="text" placeholder="John"
-                                class="w-full bg-slate-50 dark:bg-white/5 border-none rounded-2xl py-3 px-4 focus:ring-2 focus:ring-primary/20 transition-all text-sm font-bold dark:text-white placeholder:text-slate-300 dark:placeholder:text-zinc-600">
+                                class="w-full bg-slate-50 dark:bg-white/5 border-none rounded-2xl py-3 px-4 focus:ring-2 focus:ring-primary/20 transition-all text-sm font-bold dark:text-white placeholder:text-zinc-300 dark:placeholder:text-zinc-600">
                         </div>
                         <div class="space-y-1.5">
                             <label
-                                class="text-[10px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-widest ml-1">Last
+                                class="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest ml-1">Last
                                 Name</label>
                             <input x-model="newStaff.lastName" type="text" placeholder="Doe"
-                                class="w-full bg-slate-50 dark:bg-white/5 border-none rounded-2xl py-3 px-4 focus:ring-2 focus:ring-primary/20 transition-all text-sm font-bold dark:text-white placeholder:text-slate-300 dark:placeholder:text-zinc-600">
+                                class="w-full bg-slate-50 dark:bg-white/5 border-none rounded-2xl py-3 px-4 focus:ring-2 focus:ring-primary/20 transition-all text-sm font-bold dark:text-white placeholder:text-zinc-300 dark:placeholder:text-zinc-600">
                         </div>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-1.5">
                             <label
-                                class="text-[10px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-widest ml-1">Email</label>
+                                class="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest ml-1">Email</label>
                             <input x-model="newStaff.email" type="email" placeholder="john@company.com"
-                                class="w-full bg-slate-50 dark:bg-white/5 border-none rounded-2xl py-3 px-4 focus:ring-2 focus:ring-primary/20 transition-all text-sm font-bold dark:text-white placeholder:text-slate-300 dark:placeholder:text-zinc-600">
+                                class="w-full bg-slate-50 dark:bg-white/5 border-none rounded-2xl py-3 px-4 focus:ring-2 focus:ring-primary/20 transition-all text-sm font-bold dark:text-white placeholder:text-zinc-300 dark:placeholder:text-zinc-600">
                         </div>
                         <div class="space-y-1.5">
                             <label
-                                class="text-[10px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-widest ml-1">Phone</label>
-                            <input x-model="newStaff.phone" type="tel" placeholder="080..."
-                                class="w-full bg-slate-50 dark:bg-white/5 border-none rounded-2xl py-3 px-4 focus:ring-2 focus:ring-primary/20 transition-all text-sm font-bold dark:text-white placeholder:text-slate-300 dark:placeholder:text-zinc-600">
+                                class="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest ml-1">Staff
+                                TIN</label>
+                            <input x-model="newStaff.tin" type="text" placeholder="TIN-000-000"
+                                class="w-full bg-slate-50 dark:bg-white/5 border-none rounded-2xl py-3 px-4 focus:ring-2 focus:ring-primary/20 transition-all text-sm font-bold dark:text-white placeholder:text-zinc-300 dark:placeholder:text-zinc-600">
                         </div>
                     </div>
 
                     <div class="space-y-1.5">
                         <label
-                            class="text-[10px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-widest ml-1">Bank
+                            class="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest ml-1">Bank
                             Details</label>
                         <div class="grid grid-cols-2 gap-4">
                             <select x-model="newStaff.bankName"
@@ -407,21 +361,40 @@
                                 <option>Maplerad</option>
                             </select>
                             <input x-model="newStaff.accountNumber" type="text" placeholder="Account No."
-                                class="w-full bg-slate-50 dark:bg-white/5 border-none rounded-2xl py-3 px-4 focus:ring-2 focus:ring-primary/20 transition-all text-sm font-bold dark:text-white placeholder:text-slate-300 dark:placeholder:text-zinc-600">
+                                class="w-full bg-slate-50 dark:bg-white/5 border-none rounded-2xl py-3 px-4 focus:ring-2 focus:ring-primary/20 transition-all text-sm font-bold dark:text-white placeholder:text-zinc-300 dark:placeholder:text-zinc-600">
                         </div>
                     </div>
 
                     <div
                         class="p-6 bg-slate-50 dark:bg-white/5 rounded-[2rem] space-y-4 border border-slate-200 dark:border-white/10">
                         <p class="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Compensation Profile
+                            (Naira)
                         </p>
-                        <div class="grid grid-cols-3 gap-3">
-                            <input x-model="newStaff.salary" type="number" placeholder="Gross"
-                                class="bg-white dark:bg-surface-dark border-none rounded-2xl py-3 px-4 text-xs font-bold dark:text-white placeholder:text-slate-300 dark:placeholder:text-zinc-600">
-                            <input x-model="newStaff.rent" type="number" placeholder="Rent"
-                                class="bg-white dark:bg-surface-dark border-none rounded-2xl py-3 px-4 text-xs font-bold dark:text-white placeholder:text-slate-300 dark:placeholder:text-zinc-600">
-                            <input x-model="newStaff.transport" type="number" placeholder="Travel"
-                                class="bg-white dark:bg-surface-dark border-none rounded-2xl py-3 px-4 text-xs font-bold dark:text-white placeholder:text-slate-300 dark:placeholder:text-zinc-600">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="space-y-1">
+                                <label
+                                    class="text-[9px] font-bold text-zinc-400 uppercase ml-1 tracking-tighter">Gross</label>
+                                <input x-model="newStaff.salary" type="number" placeholder="Total"
+                                    class="w-full bg-white dark:bg-surface-dark border-none rounded-2xl py-2.5 px-4 text-xs font-bold dark:text-white placeholder:text-zinc-300 dark:placeholder:text-zinc-600">
+                            </div>
+                            <div class="space-y-1">
+                                <label
+                                    class="text-[9px] font-bold text-zinc-400 uppercase ml-1 tracking-tighter">Basic</label>
+                                <input x-model="newStaff.basic" type="number" placeholder="Base"
+                                    class="w-full bg-white dark:bg-surface-dark border-none rounded-2xl py-2.5 px-4 text-xs font-bold dark:text-white placeholder:text-zinc-300 dark:placeholder:text-zinc-600">
+                            </div>
+                            <div class="space-y-1">
+                                <label
+                                    class="text-[9px] font-bold text-zinc-400 uppercase ml-1 tracking-tighter">Housing</label>
+                                <input x-model="newStaff.housing" type="number" placeholder="Rent/House"
+                                    class="w-full bg-white dark:bg-surface-dark border-none rounded-2xl py-2.5 px-4 text-xs font-bold dark:text-white placeholder:text-zinc-300 dark:placeholder:text-zinc-600">
+                            </div>
+                            <div class="space-y-1">
+                                <label
+                                    class="text-[9px] font-bold text-zinc-400 uppercase ml-1 tracking-tighter">Transport</label>
+                                <input x-model="newStaff.transport" type="number" placeholder="Travel/Commute"
+                                    class="w-full bg-white dark:bg-surface-dark border-none rounded-2xl py-2.5 px-4 text-xs font-bold dark:text-white placeholder:text-zinc-300 dark:placeholder:text-zinc-600">
+                            </div>
                         </div>
                     </div>
 
@@ -432,7 +405,7 @@
                                 class="rounded-lg border-2 border-primary/30 dark:border-primary/50 text-primary focus:ring-0 w-5 h-5 bg-transparent cursor-pointer">
                         </div>
                         <p
-                            class="text-[10px] font-bold text-slate-600 dark:text-zinc-300 leading-normal uppercase tracking-tight">
+                            class="text-[10px] font-bold text-zinc-600 dark:text-zinc-300 leading-normal uppercase tracking-tight">
                             I verify staff consent for UPID creation and data processing via NRS engine.
                         </p>
                     </div>
@@ -452,7 +425,7 @@
                         JS</div>
                     <div>
                         <h2 class="text-2xl font-bold tracking-tight dark:text-white">John Smith</h2>
-                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Product Design Lead
+                        <p class="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Product Design Lead
                         </p>
                     </div>
                 </div>
@@ -460,7 +433,7 @@
                     <div
                         class="p-5 bg-slate-50 dark:bg-white/5 rounded-[2rem] border border-slate-100 dark:border-white/10">
                         <p
-                            class="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest mb-1">
+                            class="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-1">
                             UPID Token</p>
                         <p class="text-sm font-mono font-bold text-slate-800 dark:text-white tracking-tighter">
                             RE-902-124</p>
@@ -468,7 +441,7 @@
                     <div
                         class="p-5 bg-slate-50 dark:bg-white/5 rounded-[2rem] border border-slate-100 dark:border-white/10">
                         <p
-                            class="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest mb-1">
+                            class="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-1">
                             Audit Status</p>
                         <p class="text-xs font-bold text-green-600 dark:text-green-500 uppercase tracking-[0.2em]">
                             Verified_OK</p>
@@ -495,7 +468,7 @@
                     </div>
                     <div>
                         <h2 class="text-xl font-bold italic tracking-tight dark:text-white">AURACLE Intelligence</h2>
-                        <p class="text-[10px] font-bold text-slate-600 dark:text-zinc-300 uppercase tracking-widest">
+                        <p class="text-[10px] font-bold text-zinc-600 dark:text-zinc-300 uppercase tracking-widest">
                             System Response • v1.2</p>
                     </div>
                 </div>
@@ -507,13 +480,13 @@
                         x-text="'\u0022' + (auracleResponse ? auracleResponse.query : '') + '\u0022'"></p>
 
                     <p class="text-[10px] font-bold text-primary uppercase tracking-widest mb-2">Analysis</p>
-                    <p class="text-sm leading-relaxed text-slate-600 dark:text-zinc-400 mb-6"
+                    <p class="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400 mb-6"
                         x-text="auracleResponse ? auracleResponse.answer : ''"></p>
 
                     <div class="flex flex-wrap gap-2">
                         <template x-for="node in (auracleResponse ? auracleResponse.nodes : [])">
                             <span
-                                class="px-3 py-1 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-full text-[9px] font-bold text-slate-600 dark:text-zinc-300 uppercase"
+                                class="px-3 py-1 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-full text-[9px] font-bold text-zinc-600 dark:text-zinc-300 uppercase"
                                 x-text="node"></span>
                         </template>
                     </div>
@@ -529,90 +502,85 @@
     <aside
         class="w-20 lg:w-[280px] h-full glass-sidebar flex flex-col justify-between shrink-0 z-20 relative transition-all duration-300">
         <div>
-            <div class="h-14 flex items-center px-6 gap-2">
-                <div class="w-3 h-3 rounded-full bg-red-400"></div>
-                <div class="w-3 h-3 rounded-full bg-yellow-400"></div>
-                <div class="w-3 h-3 rounded-full bg-green-400"></div>
-            </div>
-
-            <a href="app.html" class="px-8 py-6 flex items-center gap-3 hover:opacity-80 transition-opacity">
+            <a href="app.html" class="px-8 py-6 flex items-center gap-3 hover:opacity-80 transition-opacity mt-4">
                 <div
-                    class="w-10 h-10 bg-slate-900 dark:bg-white rounded-2xl flex items-center justify-center shadow-float dark:shadow-none">
-                    <span class="text-white dark:text-slate-900 font-bold text-xl uppercase">R</span>
+                    class="w-10 h-10 bg-gradient-to-br from-primary to-purple-400 rounded-2xl flex items-center justify-center shadow-float dark:shadow-none">
+                    <span class="text-white font-bold text-xl">R</span>
                 </div>
-                <span class="hidden lg:block font-bold text-2xl tracking-tighter dark:text-white">REAVO</span>
+                <span class="hidden lg:block font-bold text-xl tracking-tight dark:text-white">REAVO</span>
             </a>
 
             <nav class="mt-4 px-4 space-y-1">
-                <p class="hidden lg:block text-xs font-semibold text-slate-400 px-4 mb-4 mt-4 tracking-wider uppercase">
+                <p class="hidden lg:block text-xs font-semibold text-zinc-400 px-4 mb-4 mt-4 tracking-wider uppercase">
                     Main Menu</p>
                 <a class="flex items-center gap-3 px-4 py-3 text-slate-700 dark:text-zinc-200 hover:bg-white/50 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-white rounded-2xl transition-all group"
                     href="app.html">
-                    <span
-                        class="material-icons-outlined text-[22px] group-hover:scale-110 transition-transform">dashboard</span>
+                    <span class="material-icons-outlined text-[20px]">dashboard</span>
                     <span class="hidden lg:block uppercase tracking-widest text-[11px]">Command Center</span>
                 </a>
-                <a class="flex items-center gap-3 px-4 py-3 active-link text-slate-900 rounded-2xl shadow-sm font-medium transition-all group"
+                <a class="flex items-center gap-3 px-4 py-3 active-link rounded-xl font-bold transition-all group"
                     href="registry.html">
-                    <span class="material-icons-outlined text-[22px]">people_alt</span>
+                    <span class="material-icons-outlined text-[20px]">people_alt</span>
                     <span class="hidden lg:block uppercase tracking-widest text-[11px]">The Registry</span>
                 </a>
                 <a class="flex items-center gap-3 px-4 py-3 text-slate-700 dark:text-zinc-200 hover:bg-white/50 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-white rounded-2xl transition-all group"
                     href="vault.html">
                     <span
                         class="material-icons-outlined text-[22px] group-hover:scale-110 transition-transform">lock</span>
-                    <span class="hidden lg:block uppercase tracking-widest text-[11px]">The Vault</span>
+                    <span class="hidden lg:block font-bold text-[11px] uppercase tracking-widest">The Vault</span>
                 </a>
                 <a class="flex items-center gap-3 px-4 py-3 text-slate-700 dark:text-zinc-200 hover:bg-white/50 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-white rounded-2xl transition-all group"
                     href="wallet.html">
                     <span
                         class="material-icons-outlined text-[22px] group-hover:scale-110 transition-transform">account_balance_wallet</span>
-                    <span class="hidden lg:block uppercase tracking-widest text-[11px]">Wallet</span>
+                    <span class="hidden lg:block font-bold text-[11px] uppercase tracking-widest">Wallet</span>
                 </a>
 
-                <p class="hidden lg:block text-xs font-semibold text-slate-400 px-4 mb-4 mt-8 tracking-wider uppercase">
+                <p class="hidden lg:block text-xs font-semibold text-zinc-400 px-4 mb-4 mt-8 tracking-wider uppercase">
                     Preferences</p>
                 <a class="flex items-center gap-3 px-4 py-3 text-slate-700 dark:text-zinc-200 hover:bg-white/50 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-white rounded-2xl transition-all group"
                     href="reports.html">
                     <span
                         class="material-icons-outlined text-[22px] group-hover:scale-110 transition-transform">analytics</span>
-                    <span class="hidden lg:block uppercase tracking-widest text-[11px]">Reports</span>
+                    <span class="hidden lg:block font-bold text-[11px] uppercase tracking-widest">Reports</span>
                 </a>
                 <a class="flex items-center gap-3 px-4 py-3 text-slate-700 dark:text-zinc-200 hover:bg-white/50 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-white rounded-2xl transition-all group"
                     href="settings.html">
                     <span
                         class="material-icons-outlined text-[22px] group-hover:scale-110 transition-transform">settings</span>
-                    <span class="hidden lg:block uppercase tracking-widest text-[11px]">Settings</span>
+                    <span class="hidden lg:block font-bold text-[11px] uppercase tracking-widest">Settings</span>
                 </a>
             </nav>
         </div>
 
         <div class="p-6 relative">
+
             <div @click="userDropdown = !userDropdown"
-                class="flex items-center gap-3 p-3 bg-white/50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 rounded-[2rem] transition-all cursor-pointer shadow-sm border border-transparent dark:border-white/5">
-                <img alt="User avatar" class="w-10 h-10 rounded-full object-cover shadow-sm"
+                class="flex items-center gap-3 p-3 bg-white/50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 rounded-[2rem] transition-all cursor-pointer shadow-sm dark:shadow-none border border-transparent dark:border-white/15">
+                <img alt="User avatar"
+                    class="w-10 h-10 rounded-full object-cover shadow-sm dark:shadow-none border border-slate-200 dark:border-white/10"
                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnlB5GipKRT69flPM9JEdpznVNZ3IN75njNjaR23bz1VKUTup1iDeZdCx77Z0f2urlnDDYzK_zV4eDbl0oDu1DV0rHiVazDAhc6SRTpnMJd5H3yFnR5qFpyCk4fFxArr4rIRcT25fVQSA5V-3r1OGC7RZ2TmDe3qGVtrAdzks4EPeJCjdhq68ek0bMXkQhhBJEjnvQ_O9FQmW1DD5fzrZ4UNFgD5-J3ph6T0MDJEfLkgfy8vdi796neNFMLPsfvruE8dPbzd8RIdI" />
                 <div class="hidden lg:block overflow-hidden">
                     <p class="text-sm font-semibold truncate dark:text-white">Alex Chen</p>
                     <p class="text-xs text-slate-700 dark:text-zinc-200 truncate">Controller</p>
                 </div>
                 <span
-                    class="hidden lg:block material-icons-outlined text-slate-600 dark:text-zinc-300 ml-auto">expand_more</span>
+                    class="hidden lg:block material-icons-outlined text-zinc-600 dark:text-zinc-300 ml-auto">expand_more</span>
             </div>
 
             <div x-show="userDropdown" x-cloak @click.away="userDropdown = false" x-transition
-                class="absolute bottom-full left-6 mb-2 w-[232px] bg-white dark:bg-surface-dark rounded-[2rem] shadow-float dark:shadow-none p-2 z-50 border border-slate-100 dark:border-white/10">
+                class="absolute bottom-full left-6 mb-2 w-[232px] bg-white dark:bg-surface-dark rounded-[2rem] shadow-float dark:shadow-none p-2 z-50 border border-slate-200 dark:border-white/15">
                 <a href="settings.html"
-                    class="flex items-center gap-3 px-4 py-2.5 text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-primary rounded-[2rem] transition-colors text-sm font-bold uppercase tracking-widest text-[10px]">
+                    class="flex items-center gap-3 px-4 py-2.5 text-zinc-600 dark:text-zinc-400 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-primary rounded-2xl transition-colors text-sm font-medium">
                     <span class="material-icons-outlined text-[20px]">person</span> Profile
                 </a>
-                <button @click="addNotification('Security log exported'); userDropdown = false"
-                    class="w-full flex items-center gap-3 px-4 py-2.5 text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-primary rounded-[2rem] transition-colors text-sm font-bold uppercase tracking-widest text-[10px]">
+                <button @click="showModal = 'export-log'; userDropdown = false"
+                    class="w-full flex items-center gap-3 px-4 py-2.5 text-zinc-600 dark:text-zinc-400 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-primary rounded-2xl transition-colors text-sm font-medium">
                     <span class="material-icons-outlined text-[20px]">history</span> Security Log
                 </button>
-                <div class="h-px bg-slate-50 dark:bg-white/10 my-1 mx-2"></div>
-                <button @click="addNotification('Signing out...'); setTimeout(() => location.reload(), 1000)"
-                    class="w-full flex items-center gap-3 px-4 py-2.5 text-slate-700 dark:text-zinc-200 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-500 rounded-[2rem] transition-colors text-sm font-bold uppercase tracking-widest text-[10px]">
+                <div class="h-px bg-slate-100 dark:bg-white/5 my-1 mx-2"></div>
+                <button @click="window.location.href='index.html'"
+                    class="w-full flex items-center gap-3 px-4 py-2.5 text-zinc-600 dark:text-zinc-400 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-500 rounded-2xl transition-colors text-sm font-medium">
                     <span class="material-icons-outlined text-[20px]">logout</span> Logout
                 </button>
             </div>
@@ -620,14 +588,48 @@
     </aside>
 
     <main class="flex-1 h-full overflow-y-auto relative">
-        <div class="p-8 lg:p-12 max-w-[1700px] mx-auto pb-32">
-            <header class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6 relative">
+        <div class="p-8 lg:p-12 max-w-[1600px] mx-auto pb-32">
+
+            <div
+                class="mb-4 flex items-center gap-4 py-2 border-y border-slate-200 dark:border-white/15 overflow-hidden bg-white/50 dark:bg-white/[0.02] backdrop-blur-sm shadow-sm dark:shadow-none">
+                <div class="flex items-center gap-2 px-6 whitespace-nowrap">
+                    <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                    <span
+                        class="text-[9px] font-bold tracking-[0.2em] uppercase text-slate-700 dark:text-zinc-200">NRS_CORE:
+                        ACTIVE</span>
+                </div>
+                <div
+                    class="flex items-center gap-2 px-6 border-l border-slate-200 dark:border-white/10 whitespace-nowrap">
+                    <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                    <span
+                        class="text-[9px] font-bold tracking-[0.2em] uppercase text-slate-700 dark:text-zinc-200">MAPLERAD_BRIDGE:
+                        HEALTHY</span>
+                </div>
+                <div
+                    class="flex items-center gap-2 px-6 border-l border-slate-200 dark:border-white/10 whitespace-nowrap animate-pulse">
+                    <span class="text-[9px] font-bold tracking-[0.2em] uppercase text-primary">REGISTRY_STREAM:
+                        LIVE</span>
+                </div>
+                <div class="flex-1 flex gap-12 animate-[marquee_30s_linear_infinite] whitespace-nowrap">
+                    <span
+                        class="text-[9px] font-bold uppercase tracking-widest text-zinc-600 dark:text-zinc-300">SYSTEM_UPDATE:
+                        CRYPTOGRAPHIC_UPID_ENGINE_V2_ONLINE</span>
+                    <span
+                        class="text-[9px] font-bold uppercase tracking-widest text-zinc-300 dark:text-zinc-600 italic">•</span>
+                    <span
+                        class="text-[9px] font-bold uppercase tracking-widest text-zinc-600 dark:text-zinc-300">NODE_STATUS:
+                        TOTAL_HEADCOUNT_RECONCILIATION_NOMINAL</span>
+                </div>
+            </div>
+
+            <header
+                class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6 relative mt-6">
                 <div class="absolute -left-20 -top-20 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none">
                 </div>
                 <div class="relative">
                     <h1 class="text-4xl lg:text-5xl font-black tracking-tighter dark:text-white mb-2 italic">The
                         Registry</h1>
-                    <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500 dark:text-zinc-500">
+                    <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-500 dark:text-zinc-500">
                         Human Capital Oversight | <span class="text-primary font-black">NRS_NODE_2026.v2</span></p>
                 </div>
                 <div class="flex gap-3 relative">
@@ -658,7 +660,7 @@
                             <div class="flex justify-between items-start mb-6 relative">
                                 <div>
                                     <p
-                                        class="text-[10px] font-black uppercase text-slate-400 dark:text-zinc-500 tracking-[0.2em] mb-2">
+                                        class="text-[10px] font-black uppercase text-zinc-400 dark:text-zinc-500 tracking-[0.2em] mb-2">
                                         Total Headcount</p>
                                     <h3 class="text-6xl font-black tracking-tighter text-slate-900 dark:text-white"
                                         x-text="staffList.length + 57">60</h3>
@@ -674,7 +676,7 @@
                                     <span class="material-icons-outlined text-xs">trending_up</span> +12%
                                 </span>
                                 <p
-                                    class="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest leading-none">
+                                    class="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest leading-none">
                                     Net Growth Active</p>
                             </div>
                         </div>
@@ -686,7 +688,7 @@
                             <div class="flex justify-between items-start mb-6 relative">
                                 <div>
                                     <p
-                                        class="text-[10px] font-black uppercase text-slate-400 dark:text-zinc-500 tracking-[0.2em] mb-2">
+                                        class="text-[10px] font-black uppercase text-zinc-400 dark:text-zinc-500 tracking-[0.2em] mb-2">
                                         Verified Personnel</p>
                                     <h3 class="text-6xl font-black tracking-tighter text-slate-900 dark:text-white"
                                         x-text="staffList.filter(s => s.status === 'Verified').length + 55">58</h3>
@@ -698,7 +700,7 @@
                             </div>
                             <div class="space-y-2 relative">
                                 <div
-                                    class="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-zinc-500">
+                                    class="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-zinc-400 dark:text-zinc-500">
                                     <span>Sync Accuracy</span>
                                     <span class="text-slate-900 dark:text-white">96%</span>
                                 </div>
@@ -724,27 +726,27 @@
                                     <h2 class="text-2xl font-black tracking-tighter dark:text-white">Staff Directory
                                     </h2>
                                     <p
-                                        class="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest">
+                                        class="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
                                         Master Dataset | <span class="text-primary font-black">NODE_02</span></p>
                                 </div>
                                 <div class="relative flex-1 lg:w-80 group">
                                     <span
-                                        class="material-icons-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500 text-[18px] group-focus-within:text-primary transition-colors">search</span>
+                                        class="material-icons-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 text-[18px] group-focus-within:text-primary transition-colors">search</span>
                                     <input @keyup.enter="addNotification('Applying filters to local node...')"
                                         type="text" placeholder="Search metadata..."
-                                        class="pl-12 pr-6 py-4 w-full bg-slate-100 dark:bg-white/5 border-none rounded-[1.5rem] focus:ring-2 focus:ring-primary/20 transition-all text-xs font-bold dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-600 shadow-inner" />
+                                        class="pl-12 pr-6 py-4 w-full bg-slate-100 dark:bg-white/5 border-none rounded-[1.5rem] focus:ring-2 focus:ring-primary/20 transition-all text-xs font-bold dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-600 shadow-inner" />
                                 </div>
                             </div>
                             <div class="flex items-center gap-2 overflow-x-auto w-full lg:w-auto pb-2 lg:pb-0">
                                 <button
                                     class="px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-slate-200 dark:shadow-none hover:translate-y-[-1px] transition-all">All</button>
                                 <button
-                                    class="px-5 py-2.5 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10 text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all">Contract</button>
+                                    class="px-5 py-2.5 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10 text-zinc-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all">Contract</button>
                                 <button
-                                    class="px-5 py-2.5 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10 text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all">Permanent</button>
+                                    class="px-5 py-2.5 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10 text-zinc-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all">Permanent</button>
                                 <div class="w-px h-8 bg-slate-200 dark:bg-white/10 mx-2"></div>
                                 <button
-                                    class="w-12 h-12 flex items-center justify-center bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10 text-slate-400 dark:text-zinc-500 rounded-2xl hover:bg-slate-100 dark:hover:bg-white/10 transition-all group">
+                                    class="w-12 h-12 flex items-center justify-center bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10 text-zinc-400 dark:text-zinc-500 rounded-2xl hover:bg-slate-100 dark:hover:bg-white/10 transition-all group">
                                     <span
                                         class="material-icons-outlined text-xl group-hover:rotate-180 transition-transform">filter_list</span>
                                 </button>
@@ -755,7 +757,7 @@
                             <table class="w-full text-left border-collapse">
                                 <thead>
                                     <tr
-                                        class="text-[10px] font-black text-slate-400 dark:text-zinc-500 uppercase tracking-[0.2em] border-b border-slate-100 dark:border-white/5">
+                                        class="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] border-b border-slate-100 dark:border-white/5">
                                         <th class="p-6 pl-10 w-20">
                                             <div class="flex items-center gap-4">
                                                 <input type="checkbox"
@@ -786,20 +788,20 @@
                                                         <template x-if="staff.avatar"><img :src="staff.avatar"
                                                                 class="w-full h-full object-cover" /></template>
                                                         <template x-if="!staff.avatar"><span
-                                                                class="font-black text-slate-400 dark:text-zinc-500"
+                                                                class="font-black text-zinc-400 dark:text-zinc-500"
                                                                 x-text="staff.name.charAt(0)"></span></template>
                                                     </div>
                                                     <div>
                                                         <div class="font-black text-slate-900 dark:text-white"
                                                             x-text="staff.name"></div>
-                                                        <div class="text-[10px] font-bold text-slate-500 dark:text-zinc-600 uppercase tracking-tighter"
+                                                        <div class="text-[10px] font-bold text-zinc-500 dark:text-zinc-600 uppercase tracking-tighter"
                                                             x-text="staff.email"></div>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td class="p-6 text-center">
                                                 <span
-                                                    class="font-mono text-[10px] font-black text-slate-400 dark:text-zinc-400 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 px-3 py-1.5 rounded-xl tracking-tighter"
+                                                    class="font-mono text-[10px] font-black text-zinc-400 dark:text-zinc-400 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 px-3 py-1.5 rounded-xl tracking-tighter"
                                                     x-text="staff.upid"></span>
                                             </td>
                                             <td class="p-6">
@@ -824,11 +826,11 @@
                                             <td class="p-6 text-right pr-10">
                                                 <div class="flex justify-end gap-2">
                                                     <button @click="showModal = 'staff-profile'"
-                                                        class="w-10 h-10 rounded-2xl bg-white dark:bg-surface-dark border border-slate-200 dark:border-white/15 text-slate-400 dark:text-zinc-500 hover:text-primary dark:hover:text-primary hover:border-primary/30 transition-all flex items-center justify-center shadow-sm">
+                                                        class="w-10 h-10 rounded-2xl bg-white dark:bg-surface-dark border border-slate-200 dark:border-white/15 text-zinc-400 dark:text-zinc-500 hover:text-primary dark:hover:text-primary hover:border-primary/30 transition-all flex items-center justify-center shadow-sm">
                                                         <span class="material-icons-outlined text-xl">visibility</span>
                                                     </button>
                                                     <button
-                                                        class="w-10 h-10 rounded-2xl bg-white dark:bg-surface-dark border border-slate-200 dark:border-white/15 text-slate-400 dark:text-zinc-500 hover:text-slate-800 dark:hover:text-white transition-all flex items-center justify-center shadow-sm">
+                                                        class="w-10 h-10 rounded-2xl bg-white dark:bg-surface-dark border border-slate-200 dark:border-white/15 text-zinc-400 dark:text-zinc-500 hover:text-slate-800 dark:hover:text-white transition-all flex items-center justify-center shadow-sm">
                                                         <span class="material-icons-outlined text-xl">more_vert</span>
                                                     </button>
                                                 </div>
@@ -842,13 +844,13 @@
                         <div
                             class="p-8 bg-slate-50/50 dark:bg-white/[0.01] border-t border-slate-100 dark:border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4 relative">
                             <span
-                                class="text-[10px] font-black text-slate-400 dark:text-zinc-600 uppercase tracking-widest">Dataset
+                                class="text-[10px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">Dataset
                                 Sync Active | Page 01_Auto</span>
                             <div class="flex gap-2">
                                 <button
-                                    class="px-6 py-3 bg-white dark:bg-surface-dark border border-slate-200 dark:border-white/15 text-slate-400 dark:text-zinc-600 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-sm opacity-50 cursor-not-allowed">Previous_Page</button>
+                                    class="px-6 py-3 bg-white dark:bg-surface-dark border border-slate-200 dark:border-white/15 text-zinc-400 dark:text-zinc-600 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-sm opacity-50 cursor-not-allowed">Previous_Page</button>
                                 <button
-                                    class="px-6 py-3 bg-white dark:bg-surface-dark border border-slate-200 dark:border-white/15 text-slate-600 dark:text-zinc-300 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-sm hover:border-primary/30 hover:text-primary transition-all">Next_Dataset</button>
+                                    class="px-6 py-3 bg-white dark:bg-surface-dark border border-slate-200 dark:border-white/15 text-zinc-600 dark:text-zinc-300 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-sm hover:border-primary/30 hover:text-primary transition-all">Next_Dataset</button>
                             </div>
                         </div>
                     </div>
@@ -869,14 +871,14 @@
                             <div>
                                 <h3 class="text-2xl font-black tracking-tighter dark:text-white italic">Live Audit</h3>
                                 <p
-                                    class="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest">
+                                    class="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
                                     NRS_Verification_Pipe</p>
                             </div>
                             <div class="relative">
                                 <span
                                     class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-ping"></span>
                                 <span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-                                <span class="material-icons-outlined text-slate-300 dark:text-zinc-700">sensors</span>
+                                <span class="material-icons-outlined text-zinc-300 dark:text-zinc-700">sensors</span>
                             </div>
                         </div>
 
@@ -896,15 +898,15 @@
 
                                     <div class="flex justify-between items-start mb-1">
                                         <span
-                                            class="text-[10px] font-black text-slate-400 dark:text-zinc-600 uppercase tracking-tighter"
+                                            class="text-[10px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-tighter"
                                             x-text="event.time"></span>
                                         <span
-                                            class="text-[8px] font-black px-2 py-0.5 bg-slate-100 dark:bg-white/5 rounded-full text-slate-500 dark:text-zinc-600 uppercase tracking-widest"
+                                            class="text-[8px] font-black px-2 py-0.5 bg-slate-100 dark:bg-white/5 rounded-full text-zinc-500 dark:text-zinc-600 uppercase tracking-widest"
                                             x-text="event.node"></span>
                                     </div>
                                     <p class="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-wide"
                                         x-text="event.action"></p>
-                                    <p class="text-[10px] font-bold text-slate-500 dark:text-zinc-500"
+                                    <p class="text-[10px] font-bold text-zinc-500 dark:text-zinc-500"
                                         x-text="event.user"></p>
                                 </div>
                             </template>
@@ -915,7 +917,7 @@
                             <div class="flex justify-between items-center mb-6">
                                 <p class="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Node Density
                                 </p>
-                                <span class="text-[10px] font-black text-slate-400 uppercase">92.4% Optimal</span>
+                                <span class="text-[10px] font-black text-zinc-400 uppercase">92.4% Optimal</span>
                             </div>
                             <div class="flex items-end gap-1.5 h-20">
                                 <template x-for="h in [40, 70, 45, 90, 65, 80, 55, 100, 75, 85, 60, 95]">
@@ -935,32 +937,29 @@
         </div>
         </div>
 
-        <div class="fixed bottom-8 right-8 z-50 flex flex-col items-end pointer-events-none">
+        <div class="fixed bottom-12 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-6 pointer-events-none w-full">
             <div x-show="!auracleThinking && !auracleResponse" x-transition:enter="transition ease-out duration-300"
                 x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0"
-                class="mb-6 glass-panel rounded-[2rem] rounded-tr-sm shadow-float dark:shadow-none p-6 max-w-[340px] pointer-events-auto border-slate-200 dark:border-white/10 relative overflow-hidden group">
-                <div
-                    class="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                </div>
-                <div class="flex items-start gap-4 relative">
+                class="mb-2 glass-panel rounded-[2.5rem] shadow-float dark:shadow-none p-6 max-w-[440px] pointer-events-auto border-white dark:border-white/10 relative group bg-white/80 dark:bg-surface-dark/80 backdrop-blur-xl">
+                <div class="flex items-start gap-4">
                     <div
                         class="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary to-purple-400 text-white flex items-center justify-center shrink-0 shadow-glow-primary dark:shadow-none">
                         <span class="material-icons-outlined text-xl">auto_awesome</span>
                     </div>
                     <div>
-                        <p
-                            class="text-[11px] font-bold text-slate-700 dark:text-zinc-200 leading-relaxed uppercase tracking-tight">
-                            Personnel audit required for <span class="text-primary">Anita Desai</span>. Initialize node
-                            check?
+                        <p class="text-sm text-slate-700 dark:text-zinc-200 leading-relaxed font-bold italic">
+                            96% of personnel records have been verified against NRS 2026 standards. 2 entries require
+                            manual handshake.
                         </p>
                         <div class="mt-4 flex gap-2">
-                            <button @click="auracleQuery = 'Verify Anita Desai local node sync'; executeAuracle()"
-                                class="text-[10px] font-black uppercase tracking-widest bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-4 py-2.5 rounded-xl shadow-lg hover:translate-y-[-1px] transition-all">
-                                Run_Audit
+                            <button @click="auracleQuery = 'Reconcile pending NRS entries'; executeAuracle()"
+                                class="text-[10px] font-black uppercase tracking-widest bg-slate-900 dark:bg-primary text-white dark:text-slate-900 px-4 py-2.5 rounded-xl shadow-lg transition-all hover:-translate-y-0.5">
+                                Fix_Now
                             </button>
                             <button
-                                class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-zinc-500 hover:text-slate-600 dark:hover:text-zinc-300 px-3 py-2.5 transition-colors">
-                                Dismiss
+                                @click="addNotification('Observation dismissed')"
+                                class="text-[10px] font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 hover:text-slate-600 dark:hover:text-zinc-200 px-3 py-2.5 transition-colors">
+                                Dismiss_Alert
                             </button>
                         </div>
                     </div>
@@ -968,23 +967,50 @@
             </div>
 
             <div
-                class="w-[450px] glass-panel rounded-full shadow-float dark:shadow-none flex items-center p-2 pl-6 gap-3 pointer-events-auto border-slate-200 dark:border-white/10 transition-all focus-within:ring-4 focus-within:ring-primary/5">
-                <div class="relative">
-                    <div class="w-2.5 h-2.5 bg-green-500 rounded-full shadow-[0_0_12px_rgba(34,197,94,0.6)]"
-                        :class="auracleThinking ? 'animate-ping' : 'animate-pulse'"></div>
-                    <div class="absolute inset-0 w-2.5 h-2.5 bg-green-500 rounded-full animate-ping opacity-20"></div>
+                class="w-[440px] soft-card rounded-[2rem] p-2 pl-6 gap-3 pointer-events-auto flex items-center bg-white/60 dark:bg-surface-dark/60 backdrop-blur-xl border border-white dark:border-white/5 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+                <div class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                <div class="text-[9px] font-bold text-zinc-500 dark:text-zinc-500 uppercase tracking-widest shrink-0">
+                    AURACLE_v1.2
                 </div>
-                <input x-model="auracleQuery" @keyup.enter="executeAuracle()"
-                    class="bg-transparent border-none focus:ring-0 text-sm w-full font-bold dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-600 italic"
-                    placeholder="Query the registry via AURACLE..." type="text" />
+                <input id="auracle-search" x-model="auracleQuery" @keyup.enter="executeAuracle()"
+                    class="bg-transparent border-none focus:ring-0 text-xs w-full font-bold placeholder:text-zinc-300 dark:placeholder:text-zinc-600 text-slate-800 dark:text-white uppercase tracking-tight"
+                    placeholder="Search or execute command..." type="text" />
                 <button @click="executeAuracle()"
-                    class="w-12 h-12 bg-slate-900 dark:bg-white rounded-full flex items-center justify-center text-white dark:text-slate-900 hover:scale-105 active:scale-95 transition-all shadow-lg">
-                    <span class="material-icons-outlined text-2xl" x-text="auracleThinking ? 'sync' : 'arrow_upward'"
-                        :class="auracleThinking && 'animate-spin'">arrow_upward</span>
+                    class="w-12 h-12 bg-slate-900 dark:bg-primary text-white rounded-[1.5rem] flex items-center justify-center hover:bg-black dark:hover:bg-primary-hover transition-colors shadow-lg">
+                    <template x-if="!auracleThinking">
+                        <span class="material-icons-outlined text-[20px]">terminal</span>
+                    </template>
+                    <template x-if="auracleThinking">
+                        <span class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                    </template>
                 </button>
             </div>
         </div>
     </main>
-</body>
 
+    <footer
+        class="h-10 glass-panel border-t border-slate-200 dark:border-white/10 fixed bottom-0 left-0 right-0 z-[100] flex items-center justify-between px-6 text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-400 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md">
+        <div class="flex items-center gap-6">
+            <div class="flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                <span class="dark:text-zinc-400">Node_01: Online</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                <span class="dark:text-zinc-400">Data Cluster: Health_02</span>
+            </div>
+        </div>
+        <div class="flex-1 text-center">
+            <span class="dark:text-zinc-400">Registry Snapshot v2.0 • <span class="text-primary">60 Active Members</span></span>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-1.5">
+                <span class="material-icons-outlined text-[12px]">wifi</span>
+                <span class="dark:text-zinc-400">Secure_Bridge</span>
+            </div>
+            <div class="w-px h-3 bg-slate-100 dark:bg-white/10"></div>
+            <span class="dark:text-zinc-400">REAVO_REGISTRY_X</span>
+        </div>
+    </footer>
+</body>
 </html>
