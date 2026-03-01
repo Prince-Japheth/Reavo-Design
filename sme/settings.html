@@ -4,14 +4,11 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>REAVO - Settings</title>
+    <title>REAVO | Settings</title>
     <link href="https://fonts.googleapis.com" rel="preconnect" />
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
     <link
-        href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;family=Material+Icons+Outlined&amp;display=swap"
-        rel="stylesheet" />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&family=Material+Icons+Outlined&display=swap"
         rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -22,24 +19,26 @@
                 extend: {
                     colors: {
                         "primary": "#b78df7",
-                        "background-light": "#f7f6f8",
-                        "background-dark": "#171022",
+                        "primary-light": "#ebdfff",
+                        "background-light": "#f4f5f8",
+                        "background-dark": "#0f1115",
                         "lemon-green": "#b0f78d",
+                        "lemon-light": "#e8ffde",
                     },
                     fontFamily: {
                         "display": ["Lexend", "sans-serif"]
                     },
-                    borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
                     boxShadow: {
-                        'neobrutal': '4px 4px 0px 0px rgba(0,0,0,1)',
-                        'neobrutal-sm': '2px 2px 0px 0px rgba(0,0,0,1)',
+                        'soft': '0 10px 40px -10px rgba(0,0,0,0.05)',
+                        'glow-primary': '0 10px 30px -10px rgba(183, 141, 247, 0.4)',
+                        'glow-lemon': '0 10px 30px -10px rgba(176, 247, 141, 0.4)',
+                        'float': '0 20px 40px -10px rgba(0,0,0,0.08)',
                     }
                 },
             },
         }
     </script>
     <style>
-        /* Custom scrollbar for webkit */
         ::-webkit-scrollbar {
             width: 6px;
         }
@@ -49,36 +48,36 @@
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 3px;
+            background: #e2e8f0;
+            border-radius: 10px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
+            background: #cbd5e1;
         }
 
-        /* Glassmorphism utility */
+        body {
+            background-image: radial-gradient(circle at 15% 50%, rgba(183, 141, 247, 0.08), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(176, 247, 141, 0.08), transparent 25%);
+        }
+
         .glass-sidebar {
-            background: rgba(247, 246, 248, 0.65);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(0, 0, 0, 0.05);
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-right: 1px solid rgba(255, 255, 255, 0.8);
         }
 
         .dark .glass-sidebar {
-            background: rgba(23, 16, 34, 0.65);
+            background: rgba(15, 17, 21, 0.6);
             border-right: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        /* Neo-brutalist active state for buttons */
-        .btn-press:active {
-            transform: translate(2px, 2px);
-            box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 1);
-        }
-
-        .btn-press-primary:active {
-            transform: translate(4px, 4px);
-            box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 1);
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 1);
         }
 
         [x-cloak] {
@@ -98,7 +97,7 @@
         }
 
         .animate-toast {
-            animation: toast-in 0.3s ease-out forwards;
+            animation: toast-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
     </style>
 </head>
@@ -110,394 +109,561 @@
         activeTab: 'company',
         mapleradTesting: false,
         remitaTesting: false,
+        
         addNotification(msg, type = 'success') {
             const id = Date.now();
             this.notifications.push({ id, msg, type });
             setTimeout(() => this.notifications = this.notifications.filter(n => n.id !== id), 3000);
         }
     }"
-    class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white h-screen overflow-hidden flex selection:bg-primary selection:text-white">
+    class="bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-slate-100 h-screen overflow-hidden flex selection:bg-primary selection:text-white">
 
-    <!-- Notification System -->
-    <div class="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] space-y-2 pointer-events-none">
+    <div class="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] space-y-3 pointer-events-none">
         <template x-for="n in notifications" :key="n.id">
-            <div class="animate-toast pointer-events-auto px-6 py-3 border border-black rounded-lg shadow-neobrutal flex items-center gap-3 min-w-[300px]"
-                :class="n.type === 'success' ? 'bg-lemon-green text-black' : 'bg-primary text-black'">
-                <span class="material-icons-outlined" x-text="n.type === 'success' ? 'check_circle' : 'info'"></span>
-                <span class="font-bold text-sm tracking-tight" x-text="n.msg"></span>
+            <div class="animate-toast pointer-events-auto px-6 py-4 rounded-2xl shadow-float flex items-center gap-3 min-w-[320px] backdrop-blur-md border border-white/50"
+                :class="n.type === 'success' ? 'bg-white/90 text-slate-800' : 'bg-white/90 text-slate-800'">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
+                    :class="n.type === 'success' ? 'bg-lemon-light text-green-600' : 'bg-primary-light text-primary'">
+                    <span class="material-icons-outlined text-sm"
+                        x-text="n.type === 'success' ? 'check' : 'info'"></span>
+                </div>
+                <span class="font-medium text-sm" x-text="n.msg"></span>
             </div>
         </template>
     </div>
 
-    <!-- Global Modal Overlay -->
     <div x-show="showModal" x-cloak x-transition.opacity
-        class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+        class="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
         <div x-show="showModal" x-transition.scale.origin.center @click.away="showModal = null"
-            class="bg-white dark:bg-slate-900 border-2 border-black rounded-2xl shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] max-w-lg w-full p-8 relative">
+            class="glass-panel dark:bg-slate-900 rounded-[2.5rem] shadow-float max-w-lg w-full p-8 relative">
 
-            <button @click="showModal = null" class="absolute top-4 right-4 hover:rotate-90 transition-transform">
-                <span class="material-icons-outlined font-bold">close</span>
+            <button @click="showModal = null"
+                class="absolute top-6 right-6 w-8 h-8 bg-slate-100 hover:bg-slate-200 rounded-full flex items-center justify-center text-slate-500 transition-colors">
+                <span class="material-icons-outlined text-sm font-bold">close</span>
             </button>
 
             <!-- Modal Content: Delete Account -->
             <div x-show="showModal === 'delete-account'">
-                <div class="flex items-center gap-3 mb-4 text-red-600">
-                    <span class="material-icons-outlined text-4xl">warning</span>
-                    <h2 class="text-2xl font-black uppercase italic tracking-tighter">Destroy Company?</h2>
+                <div class="flex items-center gap-4 mb-6 text-red-500">
+                    <div class="w-12 h-12 rounded-2xl bg-red-50 flex items-center justify-center">
+                        <span class="material-icons-outlined text-3xl">warning</span>
+                    </div>
+                    <h2 class="text-2xl font-semibold tracking-tight">Destroy Company?</h2>
                 </div>
-                <p class="text-slate-500 text-sm mb-6 font-medium leading-relaxed">This action is irreversible. All
+                <p class="text-slate-500 text-sm mb-8 leading-relaxed font-medium">This action is irreversible. All
                     staff UPIDs, historical tax ledgers, and vault documents will be wiped from existence.</p>
-                <div class="space-y-4">
+                <div class="space-y-6">
                     <input type="text" placeholder="Type DELETE to confirm"
-                        class="w-full border-red-500 border-2 rounded-lg py-2 focus:ring-0 font-bold uppercase placeholder:text-red-200">
+                        class="w-full bg-red-50/50 border-none rounded-2xl py-4 px-6 focus:ring-2 focus:ring-red-500/20 font-bold uppercase placeholder:text-red-300 text-red-600">
                     <div class="flex gap-4">
                         <button @click="showModal = null"
-                            class="flex-1 py-3 border-2 border-black rounded-lg font-bold">ABORT</button>
+                            class="flex-1 py-4 bg-slate-100 text-slate-600 rounded-2xl font-semibold hover:bg-slate-200 transition-colors">ABORT</button>
                         <button @click="addNotification('Account scheduled for deletion.'); showModal = null"
-                            class="flex-1 py-3 bg-red-600 text-white border-2 border-black rounded-lg font-black shadow-neobrutal-sm">I
+                            class="flex-1 py-4 bg-red-500 text-white rounded-2xl font-semibold shadow-soft hover:opacity-90 transition-all">I
                             UNDERSTAND</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <!-- Sidebar -->
+
     <aside
-        class="w-20 lg:w-64 h-full glass-sidebar flex flex-col justify-between shrink-0 z-20 relative transition-all duration-300">
+        class="w-20 lg:w-[280px] h-full glass-sidebar flex flex-col justify-between shrink-0 z-20 relative transition-all duration-300">
         <div>
-            <!-- MacOS Window Controls simulation -->
             <div class="h-14 flex items-center px-6 gap-2">
-                <div class="w-3 h-3 rounded-full bg-red-500 border border-red-600/20"></div>
-                <div class="w-3 h-3 rounded-full bg-yellow-500 border border-yellow-600/20"></div>
-                <div class="w-3 h-3 rounded-full bg-green-500 border border-green-600/20"></div>
+                <div class="w-3 h-3 rounded-full bg-red-400"></div>
+                <div class="w-3 h-3 rounded-full bg-yellow-400"></div>
+                <div class="w-3 h-3 rounded-full bg-green-400"></div>
             </div>
-            <!-- Logo -->
-            <div class="px-6 py-4 flex items-center gap-3">
+
+            <a href="app.html" class="px-8 py-6 flex items-center gap-3 hover:opacity-80 transition-opacity">
                 <div
-                    class="w-8 h-8 bg-black dark:bg-white rounded-lg flex items-center justify-center shadow-neobrutal-sm">
-                    <span class="text-white dark:text-black font-bold text-lg">R</span>
+                    class="w-10 h-10 bg-gradient-to-br from-primary to-purple-400 rounded-2xl flex items-center justify-center shadow-float">
+                    <span class="text-white font-bold text-xl uppercase">R</span>
                 </div>
                 <span class="hidden lg:block font-bold text-xl tracking-tight">REAVO</span>
-            </div>
-            <!-- Navigation -->
-            <nav class="mt-8 px-4 space-y-2">
-                <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-black dark:text-slate-400 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors group"
+            </a>
+
+            <nav class="mt-4 px-4 space-y-1">
+                <p class="hidden lg:block text-xs font-semibold text-slate-400 px-4 mb-4 mt-4 tracking-wider uppercase">
+                    Main Menu</p>
+                <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-white/50 hover:text-slate-800 rounded-2xl transition-all group"
                     href="app.html">
                     <span
-                        class="material-icons-outlined text-[20px] group-hover:scale-110 transition-transform">dashboard</span>
+                        class="material-icons-outlined text-[22px] group-hover:scale-110 transition-transform">dashboard</span>
                     <span class="hidden lg:block">Command Center</span>
                 </a>
-                <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-black dark:text-slate-400 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors group"
+                <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-white/50 hover:text-slate-800 rounded-2xl transition-all group"
                     href="registry.html">
                     <span
-                        class="material-icons-outlined text-[20px] group-hover:scale-110 transition-transform">people_alt</span>
+                        class="material-icons-outlined text-[22px] group-hover:scale-110 transition-transform">people_alt</span>
                     <span class="hidden lg:block">The Registry</span>
                 </a>
-                <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-black dark:text-slate-400 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors group"
+                <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-white/50 hover:text-slate-800 rounded-2xl transition-all group"
                     href="vault.html">
                     <span
-                        class="material-icons-outlined text-[20px] group-hover:scale-110 transition-transform">lock</span>
+                        class="material-icons-outlined text-[22px] group-hover:scale-110 transition-transform">lock</span>
                     <span class="hidden lg:block">The Vault</span>
                 </a>
-                <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-black dark:text-slate-400 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors group"
+                <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-white/50 hover:text-slate-800 rounded-2xl transition-all group"
                     href="wallet.html">
                     <span
-                        class="material-icons-outlined text-[20px] group-hover:scale-110 transition-transform">account_balance_wallet</span>
+                        class="material-icons-outlined text-[22px] group-hover:scale-110 transition-transform">account_balance_wallet</span>
                     <span class="hidden lg:block">Wallet</span>
                 </a>
-                <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-black dark:text-slate-400 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors group"
+                <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-white/50 hover:text-slate-800 rounded-2xl transition-all group"
                     href="reports.html">
                     <span
-                        class="material-icons-outlined text-[20px] group-hover:scale-110 transition-transform">analytics</span>
+                        class="material-icons-outlined text-[22px] group-hover:scale-110 transition-transform">analytics</span>
                     <span class="hidden lg:block">Reports</span>
                 </a>
-                <a class="flex items-center gap-3 px-4 py-3 bg-primary border border-black shadow-neobrutal rounded-lg text-black font-medium transition-transform active:translate-y-0.5 active:translate-x-0.5 active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] group"
-                    href="#">
-                    <span class="material-icons-outlined text-[20px]">settings</span>
+                <a class="flex items-center gap-3 px-4 py-3 bg-white text-slate-900 rounded-2xl shadow-sm font-medium transition-all group"
+                    href="settings.html">
+                    <span class="material-icons-outlined text-[22px]">settings</span>
                     <span class="hidden lg:block">Settings</span>
                 </a>
             </nav>
         </div>
-        <!-- User Profile -->
-        <div class="p-4 mb-2 relative">
+
+        <div class="p-6 relative">
             <div @click="userDropdown = !userDropdown"
-                class="flex items-center gap-3 p-3 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-black dark:hover:border-white transition-colors cursor-pointer bg-white/50 dark:bg-black/20">
-                <img alt="User avatar" class="w-9 h-9 rounded-full border border-black object-cover"
+                class="flex items-center gap-3 p-3 bg-white/50 hover:bg-white rounded-[2rem] transition-all cursor-pointer shadow-sm">
+                <img alt="User avatar" class="w-10 h-10 rounded-full object-cover shadow-sm"
                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnlB5GipKRT69flPM9JEdpznVNZ3IN75njNjaR23bz1VKUTup1iDeZdCx77Z0f2urlnDDYzK_zV4eDbl0oDu1DV0rHiVazDAhc6SRTpnMJd5H3yFnR5qFpyCk4fFxArr4rIRcT25fVQSA5V-3r1OGC7RZ2TmDe3qGVtrAdzks4EPeJCjdhq68ek0bMXkQhhBJEjnvQ_O9FQmW1DD5fzrZ4UNFgD5-J3ph6T0MDJEfLkgfy8vdi796neNFMLPsfvruE8dPbzd8RIdI" />
                 <div class="hidden lg:block overflow-hidden">
                     <p class="text-sm font-semibold truncate">Alex Chen</p>
                     <p class="text-xs text-slate-500 truncate">Controller</p>
                 </div>
+                <span class="hidden lg:block material-icons-outlined text-slate-400 ml-auto text-sm">expand_more</span>
             </div>
 
-            <!-- User Dropdown Menu -->
-            <div x-show="userDropdown" x-cloak @click.away="userDropdown = false"
-                class="absolute bottom-full left-4 mb-2 w-56 bg-white dark:bg-slate-900 border-2 border-black rounded-xl shadow-neobrutal p-2 z-50">
+            <div x-show="userDropdown" x-cloak @click.away="userDropdown = false" x-transition
+                class="absolute bottom-full left-6 mb-2 w-[232px] bg-white rounded-[2rem] shadow-float p-2 z-50 border border-slate-100">
                 <a href="settings.html"
-                    class="flex items-center gap-3 px-3 py-2 hover:bg-primary rounded-lg transition-colors font-bold text-sm">
-                    <span class="material-icons-outlined text-sm">person</span> Profile
+                    class="flex items-center gap-3 px-4 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-primary rounded-[2rem] transition-colors text-sm font-medium">
+                    <span class="material-icons-outlined text-[20px]">person</span> Profile
                 </a>
                 <button @click="addNotification('Security log exported'); userDropdown = false"
-                    class="w-full flex items-center gap-3 px-3 py-2 hover:bg-primary rounded-lg transition-colors font-bold text-sm">
-                    <span class="material-icons-outlined text-sm">history</span> Security Log
+                    class="w-full flex items-center gap-3 px-4 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-primary rounded-[2rem] transition-colors text-sm font-medium">
+                    <span class="material-icons-outlined text-[20px]">history</span> Security Log
                 </button>
-                <div class="h-px bg-black my-1"></div>
+                <div class="h-px bg-slate-50 my-1 mx-2"></div>
                 <button @click="addNotification('Signing out...'); setTimeout(() => location.reload(), 1000)"
-                    class="w-full flex items-center gap-3 px-3 py-2 hover:bg-red-500 hover:text-white rounded-lg transition-colors font-bold text-sm">
-                    <span class="material-icons-outlined text-sm">logout</span> Logout
+                    class="w-full flex items-center gap-3 px-4 py-2.5 text-slate-600 hover:bg-red-50 hover:text-red-500 rounded-[2rem] transition-colors text-sm font-medium">
+                    <span class="material-icons-outlined text-[20px]">logout</span> Logout
                 </button>
             </div>
         </div>
     </aside>
-    <!-- Main Content -->
+
     <main class="flex-1 h-full overflow-y-auto relative">
-        <div class="p-8 max-w-[1600px] mx-auto pb-32">
-            <!-- Header -->
-            <header class="mb-8">
-                <h1 class="text-3xl font-bold mb-1 italic">Settings & Identity</h1>
-                <p class="text-slate-500 dark:text-slate-400 text-sm">Configure your company profile, API connections,
-                    and automation parameters.</p>
+        <div class="p-8 lg:p-12 max-w-[1600px] mx-auto pb-32">
+            <header class="mb-10">
+                <h1 class="text-3xl font-semibold mb-2 tracking-tight">Settings & Identity</h1>
+                <p class="text-slate-500 text-sm">Configure your company profile, API connections, and automation
+                    parameters.</p>
             </header>
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                <!-- Navigation Tabs (Inline) -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
                 <div class="lg:col-span-3 space-y-2">
                     <button @click="activeTab = 'company'"
-                        :class="activeTab === 'company' ? 'bg-white border-black shadow-neobrutal-sm' : 'border-transparent'"
-                        class="w-full text-left px-4 py-3 dark:bg-slate-900 border rounded-lg font-bold flex items-center gap-3 transition-all">
-                        <span class="material-icons-outlined"
-                            :class="activeTab === 'company' ? 'text-primary' : 'text-slate-400'">business</span>
+                        :class="activeTab === 'company' ? 'bg-white text-black shadow-soft' : 'text-slate-400 hover:bg-white/50'"
+                        class="w-full text-left px-5 py-3.5 rounded-2xl font-bold flex items-center gap-3 transition-all">
+                        <span class="material-icons-outlined">business</span>
                         Company Profile
                     </button>
                     <button @click="activeTab = 'integrations'"
-                        :class="activeTab === 'integrations' ? 'bg-white border-black shadow-neobrutal-sm' : 'border-transparent'"
-                        class="w-full text-left px-4 py-3 dark:bg-slate-900 border rounded-lg font-bold flex items-center gap-3 transition-all">
-                        <span class="material-icons-outlined"
-                            :class="activeTab === 'integrations' ? 'text-primary' : 'text-slate-400'">api</span>
+                        :class="activeTab === 'integrations' ? 'bg-white text-black shadow-soft' : 'text-slate-400 hover:bg-white/50'"
+                        class="w-full text-left px-5 py-3.5 rounded-2xl font-bold flex items-center gap-3 transition-all">
+                        <span class="material-icons-outlined">api</span>
                         Integrations
                     </button>
                     <button @click="activeTab = 'preferences'"
-                        :class="activeTab === 'preferences' ? 'bg-white border-black shadow-neobrutal-sm' : 'border-transparent'"
-                        class="w-full text-left px-4 py-3 dark:bg-slate-900 border rounded-lg font-bold flex items-center gap-3 transition-all">
-                        <span class="material-icons-outlined"
-                            :class="activeTab === 'preferences' ? 'text-primary' : 'text-slate-400'">notifications</span>
+                        :class="activeTab === 'preferences' ? 'bg-white text-black shadow-soft' : 'text-slate-400 hover:bg-white/50'"
+                        class="w-full text-left px-5 py-3.5 rounded-2xl font-bold flex items-center gap-3 transition-all">
+                        <span class="material-icons-outlined">notifications</span>
                         Preferences
                     </button>
                     <button @click="activeTab = 'billing'"
-                        :class="activeTab === 'billing' ? 'bg-white border-black shadow-neobrutal-sm' : 'border-transparent'"
-                        class="w-full text-left px-4 py-3 dark:bg-slate-900 border rounded-lg font-bold flex items-center gap-3 transition-all">
-                        <span class="material-icons-outlined"
-                            :class="activeTab === 'billing' ? 'text-primary' : 'text-slate-400'">credit_card</span>
+                        :class="activeTab === 'billing' ? 'bg-white text-black shadow-soft' : 'text-slate-400 hover:bg-white/50'"
+                        class="w-full text-left px-5 py-3.5 rounded-2xl font-bold flex items-center gap-3 transition-all">
+                        <span class="material-icons-outlined">credit_card</span>
                         Billing
                     </button>
 
-                    <div class="mt-8 p-4 bg-lemon-green/10 border border-black border-dashed rounded-xl">
-                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">Current Plan</p>
-                        <h4 class="font-bold text-lg mb-1">REAVO Pro</h4>
-                        <p class="text-xs text-slate-500 mb-4">60/100 Seats used</p>
-                        <button @click="addNotification('Opening portal...')"
-                            class="w-full py-2 bg-black text-white text-xs font-bold rounded shadow-neobrutal-sm active:shadow-none transition-all">UPGRADE</button>
+                    <div
+                        class="mt-10 p-6 bg-lemon-light/50 border border-lemon-green/20 rounded-[2.5rem] relative overflow-hidden group">
+                        <div
+                            class="absolute -right-4 -top-4 w-16 h-16 bg-lemon-green/10 rounded-full blur-xl group-hover:scale-150 transition-transform">
+                        </div>
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Current Plan</p>
+                        <h4 class="font-bold text-lg text-slate-800 mb-1">REAVO Pro</h4>
+                        <p class="text-xs text-slate-500 mb-6 font-medium">60/100 Seats used</p>
+                        <button @click="addNotification('Opening billing portal...')"
+                            class="w-full py-3 bg-slate-900 text-white text-xs font-bold rounded-xl shadow-float hover:opacity-90 hover:-translate-y-0.5 transition-all">UPGRADE
+                            PLAN</button>
                     </div>
                 </div>
 
-                <!-- Settings Content -->
-                <div class="lg:col-span-9 space-y-8">
-                    <!-- Company Info Section -->
-                    <section x-show="activeTab === 'company'" x-transition
-                        class="bg-white dark:bg-slate-900 border border-black rounded-xl shadow-neobrutal p-6">
-                        <h2 class="text-xl font-bold mb-6 flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <span class="material-icons-outlined text-primary">verified_user</span>
+                <div class="lg:col-span-9 space-y-10">
+                    <section x-show="activeTab === 'company'"
+                        x-transition:enter="transition ease-out duration-300 transform"
+                        x-transition:enter-start="opacity-0 translate-y-4"
+                        x-transition:enter-end="opacity-100 translate-y-0"
+                        class="bg-white rounded-[2.5rem] p-8 shadow-soft border border-slate-50">
+                        <div class="flex items-center justify-between mb-8">
+                            <h2
+                                class="text-xs font-bold uppercase text-slate-400 tracking-[0.2em] flex items-center gap-2">
+                                <span class="material-icons-outlined text-primary text-sm">verified_user</span>
                                 KYB/Identity Details
-                            </div>
+                            </h2>
                             <button @click="addNotification('Saving changes...', 'success')"
-                                class="text-xs bg-primary px-3 py-1 border border-black rounded shadow-neobrutal-sm font-bold">SAVE</button>
-                        </h2>
+                                class="px-5 py-2 bg-slate-900 text-white text-[10px] font-bold uppercase rounded-xl shadow-float hover:opacity-90 transition-all">Save
+                                Changes</button>
+                        </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div class="space-y-2">
-                                <label class="text-xs font-bold uppercase text-slate-500">Legal Company Name</label>
+                                <label class="text-[10px] font-bold uppercase text-slate-400 px-1 tracking-widest">Legal
+                                    Company Name</label>
                                 <input type="text" value="Stitch Technologies Ltd"
-                                    class="w-full px-4 py-2 border border-black rounded-lg bg-background-light dark:bg-black/20 focus:ring-0 focus:border-primary font-medium" />
+                                    class="w-full bg-slate-50 border-none rounded-2xl py-3.5 px-6 focus:ring-2 focus:ring-primary/20 font-semibold text-slate-700 transition-all" />
                             </div>
                             <div class="space-y-2">
-                                <label class="text-xs font-bold uppercase text-slate-500">RC Number</label>
+                                <label class="text-[10px] font-bold uppercase text-slate-400 px-1 tracking-widest">RC
+                                    Number</label>
                                 <input type="text" value="RC-1928374"
-                                    class="w-full px-4 py-2 border border-black rounded-lg bg-background-light dark:bg-black/20 focus:ring-0 focus:border-primary font-medium font-mono" />
+                                    class="w-full bg-slate-50 border-none rounded-2xl py-3.5 px-6 focus:ring-2 focus:ring-primary/20 font-mono font-bold text-slate-700 transition-all" />
                             </div>
                             <div class="space-y-2">
-                                <label class="text-xs font-bold uppercase text-slate-500">Tax ID (TIN)</label>
+                                <label class="text-[10px] font-bold uppercase text-slate-400 px-1 tracking-widest">Tax
+                                    ID (TIN)</label>
                                 <div class="relative">
                                     <input type="text" value="29019283-001"
-                                        class="w-full px-4 py-2 border border-black rounded-lg bg-background-light dark:bg-black/20 focus:ring-0 focus:border-primary font-medium font-mono" />
+                                        class="w-full bg-slate-50 border-none rounded-2xl py-3.5 px-6 focus:ring-2 focus:ring-primary/20 font-mono font-bold text-slate-700 transition-all" />
                                     <span
-                                        class="absolute right-3 top-2.5 text-lemon-green material-icons-outlined text-sm">check_circle</span>
+                                        class="absolute right-5 top-1/2 -translate-y-1/2 text-green-500 material-icons-outlined text-sm">verified</span>
                                 </div>
                             </div>
                             <div class="space-y-2">
-                                <label class="text-xs font-bold uppercase text-slate-500">Industry</label>
+                                <label
+                                    class="text-[10px] font-bold uppercase text-slate-400 px-1 tracking-widest">Industry
+                                    Classification</label>
                                 <select
-                                    class="w-full px-4 py-2 border border-black rounded-lg bg-background-light dark:bg-black/20 focus:ring-0 focus:border-primary font-medium">
-                                    <option>Fintech/Software</option>
+                                    class="w-full bg-slate-50 border-none rounded-2xl py-3.5 px-6 focus:ring-2 focus:ring-primary/20 font-semibold text-slate-700 appearance-none">
+                                    <option>Fintech / Software</option>
                                     <option>E-commerce</option>
                                     <option>Logistics</option>
+                                    <option>Media & Arts</option>
                                 </select>
                             </div>
                         </div>
                     </section>
 
-                    <!-- API & Integrations -->
-                    <section x-show="activeTab === 'integrations'" x-transition
-                        class="bg-white dark:bg-slate-900 border border-black rounded-xl shadow-neobrutal p-6">
-                        <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
-                            <span class="material-icons-outlined text-primary">hub</span>
+                    <section x-show="activeTab === 'integrations'"
+                        x-transition:enter="transition ease-out duration-300 transform"
+                        x-transition:enter-start="opacity-0 translate-y-4"
+                        x-transition:enter-end="opacity-100 translate-y-0"
+                        class="bg-white rounded-[2.5rem] p-8 shadow-soft border border-slate-50">
+                        <h2
+                            class="text-xs font-bold uppercase text-slate-400 tracking-[0.2em] mb-8 flex items-center gap-2">
+                            <span class="material-icons-outlined text-primary text-sm">hub</span>
                             Financial & Cloud Rails
                         </h2>
 
-                        <div class="space-y-6">
+                        <div class="space-y-4">
                             <!-- Maplerad -->
                             <div
-                                class="p-4 border border-black rounded-xl flex items-center justify-between group hover:bg-slate-50 transition-colors">
-                                <div class="flex items-center gap-4">
+                                class="p-6 bg-slate-50 rounded-[2rem] flex items-center justify-between border border-transparent hover:border-slate-100 hover:bg-white hover:shadow-soft transition-all group">
+                                <div class="flex items-center gap-5">
                                     <div
-                                        class="w-12 h-12 bg-black text-white rounded-lg flex items-center justify-center font-bold text-xl">
+                                        class="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center font-bold text-xl shadow-sm">
                                         M</div>
                                     <div>
-                                        <h3 class="font-bold">Maplerad Payments</h3>
-                                        <p class="text-xs text-slate-500 font-mono">sk_live_••••••••••••421</p>
+                                        <h3 class="font-semibold text-slate-800">Maplerad Payments</h3>
+                                        <p class="text-[10px] text-slate-400 font-mono font-bold">
+                                            sk_live_••••••••••••421</p>
                                     </div>
                                 </div>
-                                <div class="flex gap-2">
-                                    <button @click="addNotification('Rotating Maplerad keys...')"
-                                        class="px-3 py-1 border border-black text-xs font-bold rounded shadow-neobrutal-sm hover:bg-primary transition-all">ROTATE</button>
-                                    <span
-                                        class="w-3 h-3 bg-lemon-green rounded-full border border-black animate-pulse self-center"></span>
+                                <div class="flex items-center gap-4">
+                                    <button @click="addNotification('Rotating API keys...')"
+                                        class="px-4 py-2 bg-white text-[10px] font-bold uppercase text-slate-600 rounded-xl shadow-sm hover:bg-slate-900 hover:text-white transition-all">Rotate</button>
+                                    <div
+                                        class="w-2.5 h-2.5 bg-green-500 rounded-full shadow-[0_0_8px_rgba(74,222,128,0.6)] animate-pulse">
+                                    </div>
                                 </div>
                             </div>
 
                             <!-- Remita -->
                             <div
-                                class="p-4 border border-black rounded-xl flex items-center justify-between group hover:bg-slate-50 transition-colors">
-                                <div class="flex items-center gap-4">
+                                class="p-6 bg-slate-50 rounded-[2rem] flex items-center justify-between border border-transparent hover:border-slate-100 hover:bg-white hover:shadow-soft transition-all group">
+                                <div class="flex items-center gap-5">
                                     <div
-                                        class="w-12 h-12 bg-primary text-black rounded-lg flex items-center justify-center">
-                                        <span class="material-icons-outlined">payments</span>
+                                        class="w-12 h-12 bg-primary-light text-primary rounded-2xl flex items-center justify-center shadow-sm">
+                                        <span class="material-icons-outlined text-2xl">payments</span>
                                     </div>
                                     <div>
-                                        <h3 class="font-bold">Remita Tax Engine</h3>
-                                        <p class="text-xs text-slate-500">2026 Calculation Engine Active</p>
+                                        <h3 class="font-semibold text-slate-800">Remita Tax Engine</h3>
+                                        <p class="text-[10px] text-slate-400 font-bold uppercase">2026 Engine Active</p>
                                     </div>
                                 </div>
-                                <div class="flex gap-2 relative">
-                                    <div x-show="remitaTesting"
-                                        class="absolute -left-12 top-1 text-[10px] font-black italic text-lemon-green">
-                                        SUCCESS</div>
+                                <div class="flex items-center gap-4">
                                     <button @click="remitaTesting = true; setTimeout(() => remitaTesting = false, 2000)"
-                                        class="px-3 py-1 border border-black text-xs font-bold rounded shadow-neobrutal-sm hover:bg-primary transition-all">TEST
-                                        API</button>
-                                    <span
-                                        class="w-3 h-3 bg-lemon-green rounded-full border border-black self-center"></span>
+                                        class="px-4 py-2 bg-white text-[10px] font-bold uppercase text-slate-600 rounded-xl shadow-sm hover:bg-black hover:text-white transition-all">
+                                        <span x-show="!remitaTesting">Test API</span>
+                                        <span x-show="remitaTesting" class="text-green-500">Success</span>
+                                    </button>
+                                    <div
+                                        class="w-2.5 h-2.5 bg-green-500 rounded-full shadow-[0_0_8px_rgba(74,222,128,0.6)]">
+                                    </div>
                                 </div>
                             </div>
 
                             <!-- Google Drive -->
-                            <!-- Google Drive -->
                             <div
-                                class="p-4 border border-black rounded-xl flex items-center justify-between group hover:bg-slate-50 transition-colors">
-                                <div class="flex items-center gap-4">
+                                class="p-6 bg-slate-50 rounded-[2rem] flex items-center justify-between border border-transparent hover:border-slate-100 hover:bg-white hover:shadow-soft transition-all group">
+                                <div class="flex items-center gap-5">
                                     <div
-                                        class="w-12 h-12 bg-white border border-black rounded-lg flex items-center justify-center">
+                                        class="w-12 h-12 bg-white border border-slate-100 rounded-2xl flex items-center justify-center p-2.5 shadow-sm">
                                         <img src="https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg"
-                                            class="w-6 h-6" />
+                                            class="w-full h-full" />
                                     </div>
                                     <div>
-                                        <h3 class="font-bold">Google Drive Vault Sync</h3>
-                                        <p class="text-xs text-slate-500">Folder: /REAVO_RECORDS</p>
+                                        <h3 class="font-semibold text-slate-800">Google Drive Vault</h3>
+                                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                                            Syncing /REAVO_RECORDS</p>
                                     </div>
                                 </div>
-                                <div class="flex gap-2">
-                                    <button @click="addNotification('Disconnected Google Drive.')"
-                                        class="px-3 py-1 border border-black text-xs font-bold rounded shadow-neobrutal-sm hover:bg-red-500 hover:text-white transition-all uppercase">Disconnect</button>
+                                <button @click="addNotification('Disconnected Google Drive.')"
+                                    class="px-4 py-2 bg-red-50 text-red-500 text-[10px] font-bold uppercase rounded-xl hover:bg-red-500 hover:text-white transition-all">Disconnect</button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section x-show="activeTab === 'preferences'"
+                        x-transition:enter="transition ease-out duration-300 transform"
+                        x-transition:enter-start="opacity-0 translate-y-4"
+                        x-transition:enter-end="opacity-100 translate-y-0"
+                        class="bg-white rounded-[2.5rem] p-8 shadow-soft border border-slate-50">
+                        <div class="flex items-center justify-between mb-8">
+                            <h2
+                                class="text-xs font-bold uppercase text-slate-400 tracking-[0.2em] flex items-center gap-2">
+                                <span class="material-icons-outlined text-primary text-sm">tune</span>
+                                System Preferences
+                            </h2>
+                            <button @click="addNotification('Preferences updated!', 'success')"
+                                class="px-5 py-2 bg-slate-900 text-white text-[10px] font-bold uppercase rounded-xl shadow-float hover:opacity-90 transition-all">Save
+                                Changes</button>
+                        </div>
+
+                        <div class="space-y-8">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div class="space-y-4">
+                                    <label
+                                        class="text-[10px] font-bold uppercase text-slate-400 px-1 tracking-widest">Interface
+                                        Language</label>
+                                    <select
+                                        class="w-full bg-slate-50 border-none rounded-2xl py-3.5 px-6 focus:ring-2 focus:ring-primary/20 font-semibold text-slate-700 appearance-none">
+                                        <option>English (UK)</option>
+                                        <option>Yoruba</option>
+                                        <option>Hausa</option>
+                                        <option>Igbo</option>
+                                        <option>French</option>
+                                    </select>
+                                </div>
+                                <div class="space-y-4">
+                                    <label
+                                        class="text-[10px] font-bold uppercase text-slate-400 px-1 tracking-widest">Time
+                                        Zone</label>
+                                    <select
+                                        class="w-full bg-slate-50 border-none rounded-2xl py-3.5 px-6 focus:ring-2 focus:ring-primary/20 font-semibold text-slate-700 appearance-none">
+                                        <option>(GMT+01:00) Lagos</option>
+                                        <option>(GMT+00:00) London</option>
+                                        <option>(GMT-05:00) New York</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="pt-6 border-t border-slate-50 space-y-4">
+                                <h3 class="text-sm font-bold text-slate-800">Notification Channels</h3>
+                                <div class="space-y-3">
+                                    <label
+                                        class="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl cursor-pointer hover:bg-slate-100 transition-colors">
+                                        <input type="checkbox" checked
+                                            class="w-5 h-5 rounded text-primary focus:ring-primary/20 border-slate-200" />
+                                        <div class="flex-1">
+                                            <p class="text-sm font-semibold text-slate-800">Email Notifications</p>
+                                            <p class="text-[10px] text-slate-500 uppercase font-bold tracking-tight">
+                                                Weekly tax summaries and payroll alerts</p>
+                                        </div>
+                                    </label>
+                                    <label
+                                        class="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl cursor-pointer hover:bg-slate-100 transition-colors">
+                                        <input type="checkbox" checked
+                                            class="w-5 h-5 rounded text-primary focus:ring-primary/20 border-slate-200" />
+                                        <div class="flex-1">
+                                            <p class="text-sm font-semibold text-slate-800">Slack Integration</p>
+                                            <p class="text-[10px] text-slate-500 uppercase font-bold tracking-tight">
+                                                Instant push notifications to #finance-alerts</p>
+                                        </div>
+                                    </label>
+                                    <label
+                                        class="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl cursor-pointer hover:bg-slate-100 transition-colors">
+                                        <input type="checkbox"
+                                            class="w-5 h-5 rounded text-primary focus:ring-primary/20 border-slate-200" />
+                                        <div class="flex-1">
+                                            <p class="text-sm font-semibold text-slate-800">SMS Alerts</p>
+                                            <p class="text-[10px] text-slate-500 uppercase font-bold tracking-tight">
+                                                Critical disbursement authorization reminders</p>
+                                        </div>
+                                    </label>
                                 </div>
                             </div>
                         </div>
                     </section>
 
-                    <!-- Placeholder sections for other tabs -->
-                    <section x-show="activeTab === 'preferences'" x-transition
-                        class="bg-white dark:bg-slate-900 border border-black rounded-xl shadow-neobrutal p-6 text-center py-12">
-                        <span class="material-icons-outlined text-6xl text-slate-200 mb-4">notifications_active</span>
-                        <h3 class="font-bold text-xl mb-2">Notification Preferences</h3>
-                        <p class="text-sm text-slate-500 max-w-sm mx-auto">Configure where and when REAVO sends you
-                            alerts regarding payroll, taxes, and security events.</p>
+                    <section x-show="activeTab === 'billing'"
+                        x-transition:enter="transition ease-out duration-300 transform"
+                        x-transition:enter-start="opacity-0 translate-y-4"
+                        x-transition:enter-end="opacity-100 translate-y-0"
+                        class="bg-white rounded-[2.5rem] p-8 shadow-soft border border-slate-50">
+                        <div class="flex items-center justify-between mb-8">
+                            <h2
+                                class="text-xs font-bold uppercase text-slate-400 tracking-[0.2em] flex items-center gap-2">
+                                <span class="material-icons-outlined text-primary text-sm">payments</span>
+                                Billing & Subscription
+                            </h2>
+                            <button @click="addNotification('Opening billing portal...')"
+                                class="px-5 py-2 bg-slate-900 text-white text-[10px] font-bold uppercase rounded-xl shadow-float hover:opacity-90 transition-all">Manage
+                                Payment Method</button>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                            <div class="p-6 bg-slate-50 rounded-[2rem] border border-slate-100">
+                                <p class="text-[10px] font-bold uppercase text-slate-400 tracking-widest mb-2">Plan Type
+                                </p>
+                                <h3 class="text-xl font-bold text-slate-800">REAVO Pro</h3>
+                                <p class="text-xs text-slate-500 mt-1">Enterprise Analytics</p>
+                            </div>
+                            <div class="p-6 bg-slate-50 rounded-[2rem] border border-slate-100">
+                                <p class="text-[10px] font-bold uppercase text-slate-400 tracking-widest mb-2">Next
+                                    Renewal</p>
+                                <h3 class="text-xl font-bold text-slate-800">Nov 24, 2023</h3>
+                                <p class="text-xs text-slate-500 mt-1">₦142,500.00 / month</p>
+                            </div>
+                            <div class="p-6 bg-slate-50 rounded-[2rem] border border-slate-100 uppercase">
+                                <p class="text-[10px] font-bold uppercase text-slate-400 tracking-widest mb-2">Status
+                                </p>
+                                <div class="flex items-center gap-2">
+                                    <div
+                                        class="w-2.5 h-2.5 bg-green-500 rounded-full shadow-[0_0_8px_rgba(74,222,128,0.4)]">
+                                    </div>
+                                    <h3 class="text-xl font-bold text-slate-800">Active</h3>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <h3 class="text-[10px] font-bold uppercase text-slate-400 px-1 tracking-[0.2em]">Transaction
+                                History</h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left">
+                                    <thead>
+                                        <tr
+                                            class="text-[10px] font-bold uppercase text-slate-400 border-b border-slate-50">
+                                            <th class="pb-4 px-2">Date</th>
+                                            <th class="pb-4 px-2">Invoice ID</th>
+                                            <th class="pb-4 px-2">Amount</th>
+                                            <th class="pb-4 px-2 text-right">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-50">
+                                        <tr class="group">
+                                            <td class="py-4 px-2 text-sm font-semibold text-slate-700">Oct 24, 2023</td>
+                                            <td
+                                                class="py-4 px-2 text-sm font-mono font-bold text-slate-500 uppercase tracking-tighter">
+                                                INV-09827-X</td>
+                                            <td class="py-4 px-2 text-sm font-bold text-slate-800">₦142,500.00</td>
+                                            <td class="py-4 px-2 text-right text-primary">
+                                                <button
+                                                    class="hover:underline text-[10px] font-bold uppercase tracking-widest">Download
+                                                    PDF</button>
+                                            </td>
+                                        </tr>
+                                        <tr class="group">
+                                            <td class="py-4 px-2 text-sm font-semibold text-slate-700">Sep 24, 2023</td>
+                                            <td
+                                                class="py-4 px-2 text-sm font-mono font-bold text-slate-500 uppercase tracking-tighter">
+                                                INV-08712-Y</td>
+                                            <td class="py-4 px-2 text-sm font-bold text-slate-800">₦142,500.00</td>
+                                            <td class="py-4 px-2 text-right text-primary">
+                                                <button
+                                                    class="hover:underline text-[10px] font-bold uppercase tracking-widest">Download
+                                                    PDF</button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </section>
 
-                    <section x-show="activeTab === 'billing'" x-transition
-                        class="bg-white dark:bg-slate-900 border border-black rounded-xl shadow-neobrutal p-6 text-center py-12">
-                        <span class="material-icons-outlined text-6xl text-slate-200 mb-4">receipt_long</span>
-                        <h3 class="font-bold text-xl mb-2">Billing History</h3>
-                        <p class="text-sm text-slate-500 max-w-sm mx-auto">Access your corporate invoices and manage
-                            your seat subscriptions.</p>
-                    </section>
 
-                    <!-- Danger Zone -->
-                    <section class="border-2 border-dashed border-red-500 rounded-xl p-6 bg-red-50 dark:bg-red-950/20">
-                        <h2 class="text-lg font-bold text-red-600 mb-4 uppercase tracking-widest italic">Danger Zone
+                    <section class="bg-red-50/30 rounded-[2.5rem] p-8 border border-red-100 relative overflow-hidden">
+                        <div
+                            class="absolute -right-10 -bottom-10 w-40 h-40 bg-red-100/20 rounded-full blur-3xl pointer-events-none">
+                        </div>
+                        <h2 class="text-xs font-bold uppercase text-red-400 tracking-[0.2em] mb-8 italic">Danger Zone
                         </h2>
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="font-bold">Delete Company Account</p>
-                                <p class="text-xs text-slate-500">This will permanently wipe all staff records, UPIDs,
-                                    and tax history.</p>
+                                <p class="font-bold text-slate-800 mb-1">Delete Company Account</p>
+                                <p class="text-xs text-slate-500 font-medium">Permanently wipe all records, UPIDs, and
+                                    tax history.</p>
                             </div>
                             <button @click="showModal = 'delete-account'"
-                                class="px-6 py-2 border-2 border-red-600 bg-white text-red-600 font-bold rounded-lg shadow-[4px_4px_0px_0px_theme(colors.red.600)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all">DELETE</button>
+                                class="px-8 py-3.5 bg-white border border-red-200 text-red-500 font-bold rounded-2xl shadow-sm hover:bg-red-500 hover:text-white hover:border-red-500 transition-all text-xs uppercase tracking-widest">Delete</button>
                         </div>
                     </section>
                 </div>
             </div>
         </div>
 
-        <!-- The AURACLE (AI Assistant) -->
-        <div x-data="{ scheduled: false }"
-            class="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-none">
-            <!-- Chat bubble -->
-            <div
-                class="mb-4 bg-white dark:bg-slate-900 border border-black rounded-xl rounded-tr-sm shadow-[8px_8px_0px_0px_rgba(183,141,247,1)] p-4 max-w-sm pointer-events-auto transform transition-all hover:scale-105 origin-bottom-right">
-                <div class="flex items-start gap-3">
+        <div class="fixed bottom-8 right-8 z-50 flex flex-col items-end pointer-events-none">
+            <div x-data="{ scheduled: false }"
+                class="mb-6 glass-panel rounded-[2rem] rounded-tr-sm shadow-float p-5 max-w-[340px] pointer-events-auto border border-white/60">
+                <div class="flex items-start gap-4">
                     <div
-                        class="w-8 h-8 rounded bg-black text-primary flex items-center justify-center font-bold text-xs shrink-0">
-                        AI
+                        class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-purple-400 text-white flex items-center justify-center shrink-0 shadow-sm">
+                        <span class="material-icons-outlined text-[16px]">auto_awesome</span>
                     </div>
                     <div>
-                        <p x-show="!scheduled" class="text-sm font-medium leading-snug">I recommend rotating your
-                            Maplerad API key every 90 days. Would you like me to schedule a reminder?</p>
-                        <p x-show="scheduled" class="text-sm font-black italic text-primary leading-snug">Scheduled!
-                            I'll remind you in 90 days to rotate your keys.</p>
-
-                        <div x-show="!scheduled" class="mt-2 flex gap-2">
+                        <p x-show="!scheduled" class="text-sm text-slate-700 leading-relaxed font-medium">I recommend
+                            rotating your Maplerad API key every 90 days. Schedule a reminder?</p>
+                        <p x-show="scheduled" class="text-sm text-primary leading-relaxed font-bold italic">Scheduled!
+                            I'll remind you in 90 days.</p>
+                        <div x-show="!scheduled" class="mt-3 flex gap-2">
                             <button @click="scheduled = true; addNotification('Reminder scheduled!', 'success')"
-                                class="text-xs font-bold border border-black px-2 py-1 rounded hover:bg-primary hover:text-white transition-colors">Yes,
-                                schedule</button>
-                            <button @click="addNotification('Reminder dismissed')"
-                                class="text-xs text-slate-500 hover:text-black transition-colors px-1 py-1">Dismiss</button>
+                                class="text-xs font-semibold bg-slate-900 text-white px-4 py-2 rounded-2xl shadow-sm hover:shadow-float transition-all">Schedule</button>
+                            <button
+                                class="text-xs font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-50 px-3 py-2 rounded-2xl transition-colors">Dismiss</button>
                         </div>
                     </div>
                 </div>
             </div>
-            <!-- Input Bar -->
+
             <div
-                class="w-96 bg-white/90 backdrop-blur-md dark:bg-slate-900/90 border border-black rounded-full shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center p-1 pl-4 gap-2 pointer-events-auto">
-                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <input @keyup.enter="addNotification('Applying preference change...')"
-                    class="bg-transparent border-none focus:ring-0 text-sm w-full font-medium placeholder:text-slate-400"
+                class="w-[400px] glass-panel rounded-full shadow-float flex items-center p-1.5 pl-6 gap-3 pointer-events-auto border border-white/80 transition-shadow focus-within:shadow-float">
+                <div class="w-2 h-2 bg-green-400 rounded-full shadow-[0_0_8px_rgba(74,222,128,0.8)] animate-pulse">
+                </div>
+                <input @keyup.enter="addNotification('The AURACLE is searching...')"
+                    class="bg-transparent border-none focus:ring-0 text-sm w-full font-medium placeholder:text-slate-400 text-slate-700"
                     placeholder="Search settings..." type="text" />
-                <button @click="addNotification('Applying preference change...')"
-                    class="w-8 h-8 bg-black rounded-full flex items-center justify-center text-primary hover:text-white transition-colors">
-                    <span class="material-icons-outlined text-[18px]">arrow_upward</span>
+                <button @click="addNotification('The AURACLE is searching...')"
+                    class="w-10 h-10 bg-slate-900 rounded-full flex items-center justify-center text-white hover:bg-black shadow-sm transition-colors">
+                    <span class="material-icons-outlined text-[20px]">arrow_upward</span>
                 </button>
             </div>
-            <div class="mt-1 mr-4 text-[10px] font-bold tracking-widest text-slate-400 uppercase">The AURACLE v2.0</div>
         </div>
     </main>
 </body>
